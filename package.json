@@ -11,6 +11,9 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
     "astro": "^5.13.7",
+    "openai": "^5.20.3"
+  },
+  "devDependencies": {
     "daisyui": "^5.1.12",
     "tailwindcss": "^4.1.13"
   }
