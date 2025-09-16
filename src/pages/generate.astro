@@ -1,0 +1,51 @@
+---
+
+---
+
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Générateur SVG</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body
+    class="min-h-screen bg-base-100 p-0 flex flex-col items-center justify-center"
+  >
+    <main class="w-full max-w-2xl p-4 flex flex-col gap-8">
+      <div class="card bg-base-200 shadow-xl">
+        <form class="card-body gap-4">
+          <h2 class="card-title">Entrez un prompt</h2>
+          <textarea
+            class="textarea textarea-bordered w-full min-h-[80px]"
+            placeholder="Tapez votre prompt ici..."></textarea>
+          <div class="card-actions justify-end">
+            <button class="btn btn-primary btn-wide">Générer</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="collapse collapse-arrow bg-base-200 shadow-xl">
+        <input type="checkbox" class="peer" />
+        <div class="collapse-title text-lg font-medium">Code généré</div>
+        <div class="collapse-content">
+          <pre
+            class="bg-base-300 p-4 rounded overflow-x-auto">Ici apparaitra le code...</pre>
+        </div>
+      </div>
+
+      <div class="card bg-base-200 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">SVG généré</h2>
+          <div
+            class="bg-base-300 p-6 rounded flex items-center justify-center min-h-[120px]"
+          >
+            <span
+              class="loading loading-spinner loading-lg text-primary mr-4 hidden"
+            ></span>
+            <p class="text-base-content/70">Aucun SVG pour l'instant</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
