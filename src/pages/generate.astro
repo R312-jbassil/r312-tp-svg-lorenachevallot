@@ -26,7 +26,7 @@ import Layout from "../layouts/Layout.astro";
       </div>
     </div>
 
-    <!-- Partie basse : input + bouton -->
+    <!-- Partie basse : input + boutons -->
     <div class="join w-full items-center">
       <input
         id="user-prompt"
@@ -34,10 +34,12 @@ import Layout from "../layouts/Layout.astro";
         placeholder="Décrivez le SVG à générer..."
         class="input input-bordered join-item w-full"
       />
-      <button id="generate-button" class="btn btn-primary join-item"
-        >Generate</button
-      >
-      <button class="btn btn-secondary m-2" id="edit-button">Edit</button>
+      <button id="generate-button" class="btn btn-primary join-item">
+        Generate
+      </button>
+      <button id="edit-button" class="btn btn-secondary m-2"> Edit </button>
+      <button id="save-button" class="btn btn-accent m-2"> Sauvegarder </button>
+      <a href="/gallery" class="btn btn-outline m-2">Voir la galerie</a>
     </div>
   </div>
 </Layout>
@@ -124,5 +126,40 @@ import Layout from "../layouts/Layout.astro";
   const generateButton = document.getElementById("generate-button");
   if (generateButton) {
     generateButton.addEventListener("click", handleSubmit);
+  }
+  // Fonction utilitaire pour sauvegarder le SVG
+  const saveButton = document.getElementById("save-button");
+
+  async function saveSVG(params) {
+    // Envoi de la requête à notre endpoint
+    const res = await fetch("/api/saveSVG", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+    return await res.json();
+  }
+
+  // Gestionnaire d'événements pour le bouton de sauvegarde
+  if (saveButton) {
+    saveButton.addEventListener("click", async () => {
+      // Demande du nom du SVG à l'utilisateur
+      const name = prompt("Donnez un nom à votre création :");
+      const svgOutput = document.getElementById("svg-output")?.textContent;
+      console.log("Préparation de la sauvegarde :", JSON.stringify(svgOutput));
+      // Préparation des données pour la sauvegarde
+      const params = {
+        name,
+        code_svg: svgOutput || "<svg></svg>", // SVG par défaut si vide
+        chat_history: JSON.stringify(promptList), // Historique des échanges
+      };
+      // Sauvegarde et gestion de la réponse
+      const result = await saveSVG(params);
+      if (result.success) {
+        alert("SVG sauvegardé avec succès !");
+      } else {
+        alert("Erreur lors de la sauvegarde : " + result.error);
+      }
+    });
   }
 </script>

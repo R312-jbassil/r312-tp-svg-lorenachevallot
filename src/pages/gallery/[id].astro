@@ -1,0 +1,284 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import pb from "../../utils/pb";
+import {
+    Collections,
+    type NouvelleCollectionTpRecord,
+} from "../../utils/pocketbase-types";
+
+const id = Astro.params.id;
+
+if (!id) {
+    return Astro.redirect("/gallery");
+}
+
+if (Astro.request.method === "POST") {
+    try {
+        const formData = await Astro.request.formData();
+        const editPrompt = formData.get("editPrompt") as string;
+        const historyData = formData.get("history") as string;
+        const recordId = formData.get("id") as string;
+
+        if (!editPrompt || !recordId) {
+            throw new Error("Données manquantes");
+        }
+
+        let history: Array<{ role: string; content: string }> = [];
+        try {
+            const parsedHistory = JSON.parse(historyData || "[]");
+            history = Array.isArray(parsedHistory) ? parsedHistory : [];
+        } catch (e) {
+            history = [];
+        }
+
+        const userMessage = { role: "user", content: editPrompt };
+        history.push(userMessage);
+
+        const generateResponse = await fetch(
+            `${Astro.url.origin}/api/generateSVG`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(history),
+            },
+        );
+
+        const generateData = await generateResponse.json();
+        const aiResponse = generateData.svg.content;
+
+        const svgMatch = aiResponse.match(/<svg[\s\S]*?<\/svg>/i);
+        const svgCode = svgMatch ? svgMatch[0] : "";
+
+        history.push({ role: "assistant", content: aiResponse });
+
+        await pb.collection(Collections.NouvelleCollectionTp).update(recordId, {
+            code_svg: svgCode,
+            chat_history: JSON.stringify(history),
+        });
+
+        return Astro.redirect(`/gallery/${recordId}`);
+    } catch (error) {
+        console.error("Error updating SVG:", error);
+    }
+}
+
+let svg: NouvelleCollectionTpRecord;
+let chatHistory: Array<{ role: string; content: string }> = [];
+
+try {
+    svg = await pb.collection(Collections.NouvelleCollectionTp).getOne(id);
+    if (svg.chat_history) {
+        try {
+            const parsedHistory = JSON.parse(svg.chat_history);
+            chatHistory = Array.isArray(parsedHistory) ? parsedHistory : [];
+        } catch (e) {
+            chatHistory = [];
+        }
+    }
+} catch (error) {
+    return Astro.redirect("/gallery");
+}
+---
+
+<Layout title={`Modification de ${svg.name}`}>
+    <div class="min-h-screen flex">
+        <div class="w-1/2 p-6 border-r border-base-300">
+            <h2 class="text-2xl font-bold mb-4">{svg.name}</h2>
+            <div
+                id="svg-preview"
+                data-svg-container
+                class="border border-base-300 rounded-box h-[80vh] flex items-center justify-center p-4 overflow-auto"
+            >
+                {
+                    svg.code_svg ? (
+                        <div set:html={svg.code_svg} />
+                    ) : (
+                        <p class="text-base-content/70">Aucun SVG disponible</p>
+                    )
+                }
+            </div>
+        </div>
+
+        <div class="w-1/2 flex flex-col h-screen">
+            <div class="p-6 pb-4">
+                <h3 class="text-xl font-semibold">Chat - Modifiez votre SVG</h3>
+            </div>
+
+            <div class="flex-1 flex flex-col min-h-0 px-6">
+                <div
+                    id="chat-history"
+                    class="flex-1 flex flex-col gap-4 overflow-y-auto mb-4 scroll-smooth"
+                    style="max-height: calc(100vh - 200px);"
+                >
+                    {
+                        chatHistory.length > 0 ? (
+                            chatHistory.map(
+                                (msg: { role: string; content: string }) => (
+                                    <div
+                                        class={`chat ${msg.role === "user" ? "chat-end" : "chat-start"}`}
+                                    >
+                                        <div
+                                            class={`chat-bubble ${msg.role === "user" ? "bg-primary text-primary-content" : "bg-secondary text-secondary-content"}`}
+                                        >
+                                            <pre class="whitespace-pre-wrap text-sm">
+                                                {msg.content}
+                                            </pre>
+                                        </div>
+                                        <div class="chat-footer opacity-60 text-xs mt-1">
+                                            {msg.role}
+                                        </div>
+                                    </div>
+                                ),
+                            )
+                        ) : (
+                            <div class="flex items-center justify-center h-full">
+                                <span class="text-base-content/60">
+                                    Commencez à modifier votre SVG en tapant un
+                                    message...
+                                </span>
+                            </div>
+                        )
+                    }
+                </div>
+
+                <div class="border-t border-base-300 pt-4 pb-6">
+                    <form
+                        id="input-prompt-form"
+                        method="POST"
+                        autocomplete="off"
+                        class="w-full"
+                    >
+                        <input
+                            type="hidden"
+                            name="history"
+                            value={JSON.stringify(chatHistory)}
+                        />
+                        <input type="hidden" name="id" value={svg?.id} />
+                        <div class="flex items-center gap-2">
+                            <input
+                                id="prompt-input"
+                                name="editPrompt"
+                                type="text"
+                                class="input input-bordered flex-grow"
+                                placeholder="Décrivez les modifications à apporter au SVG..."
+                                required
+                            />
+                            <button
+                                class="btn btn-primary"
+                                type="submit"
+                                id="edit-btn"
+                            >
+                                <span
+                                    class="loading loading-spinner loading-sm hidden"
+                                    id="loading-spinner"></span>
+                                <span id="btn-text">Modifier</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    //@ts-nocheck
+    const form = document.getElementById("input-prompt-form");
+    const svgPreview = document.querySelector("[data-svg-container]");
+    const chatHistory = document.getElementById("chat-history");
+    const promptInput = document.getElementById("prompt-input");
+    const editBtn = document.getElementById("edit-btn");
+    const loadingSpinner = document.getElementById("loading-spinner");
+    const btnText = document.getElementById("btn-text");
+
+    function scrollToBottom() {
+        chatHistory.scrollTo({
+            top: chatHistory.scrollHeight,
+            behavior: "smooth",
+        });
+    }
+
+    scrollToBottom();
+
+    form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const editPrompt = formData.get("editPrompt");
+
+        if (!editPrompt || editPrompt.trim() === "") {
+            return;
+        }
+
+        promptInput.disabled = true;
+        editBtn.disabled = true;
+        loadingSpinner.classList.remove("hidden");
+        btnText.textContent = "Génération...";
+
+        const userMessage = document.createElement("div");
+        userMessage.className = "chat chat-end";
+        userMessage.innerHTML = `
+            <div class="chat-bubble bg-primary text-primary-content">
+                <pre class="whitespace-pre-wrap text-sm">${editPrompt}</pre>
+            </div>
+            <div class="chat-footer opacity-60 text-xs mt-1">user</div>
+        `;
+        chatHistory.appendChild(userMessage);
+
+        const aiMessageContainer = document.createElement("div");
+        aiMessageContainer.className = "chat chat-start";
+        aiMessageContainer.innerHTML = `
+            <div class="chat-bubble bg-secondary text-secondary-content">
+                <div class="flex items-center gap-2">
+                    <span class="loading loading-dots loading-sm"></span>
+                    <span class="text-sm">L'IA génère votre SVG...</span>
+                </div>
+            </div>
+            <div class="chat-footer opacity-60 text-xs mt-1">assistant</div>
+        `;
+        chatHistory.appendChild(aiMessageContainer);
+
+        scrollToBottom();
+
+        promptInput.value = "";
+
+        try {
+            const response = await fetch(window.location.href, {
+                method: "POST",
+                body: formData,
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                throw new Error("Erreur lors de la modification");
+            }
+        } catch (error) {
+            console.error("Erreur:", error);
+
+            const aiChatBubble =
+                aiMessageContainer.querySelector(".chat-bubble");
+            aiChatBubble.innerHTML = `
+                <div class="text-error text-sm">
+                    ❌ Erreur lors de la génération du SVG. Veuillez réessayer.
+                </div>
+            `;
+
+            userMessage.remove();
+        } finally {
+            promptInput.disabled = false;
+            editBtn.disabled = false;
+            loadingSpinner.classList.add("hidden");
+            btnText.textContent = "Modifier";
+        }
+    });
+
+    promptInput?.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            form.dispatchEvent(new Event("submit"));
+        }
+    });
+
+    promptInput?.focus();
+</script>
