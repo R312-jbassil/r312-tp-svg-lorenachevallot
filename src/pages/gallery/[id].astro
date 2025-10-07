@@ -1,11 +1,13 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import { ui } from "../../i18n/ui.js";
 import pb from "../../utils/pb";
 import {
     Collections,
     type NouvelleCollectionTpRecord,
 } from "../../utils/pocketbase-types";
 
+const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
 const id = Astro.params.id;
 
 if (!id) {
@@ -80,7 +82,7 @@ try {
 }
 ---
 
-<Layout title={`Modification de ${svg.name}`}>
+<Layout title={`${ui[locale].generator.editButton} ${svg.name}`}>
     <div class="min-h-screen flex">
         <div class="w-1/2 p-6 border-r border-base-300">
             <h2 class="text-2xl font-bold mb-4">{svg.name}</h2>
@@ -93,7 +95,9 @@ try {
                     svg.code_svg ? (
                         <div set:html={svg.code_svg} />
                     ) : (
-                        <p class="text-base-content/70">Aucun SVG disponible</p>
+                        <p class="text-base-content/70">
+                            {ui[locale].generator.contentPlaceholder}
+                        </p>
                     )
                 }
             </div>
@@ -101,7 +105,9 @@ try {
 
         <div class="w-1/2 flex flex-col h-screen">
             <div class="p-6 pb-4">
-                <h3 class="text-xl font-semibold">Chat - Modifiez votre SVG</h3>
+                <h3 class="text-xl font-semibold">
+                    Chat - {ui[locale].generator.editButton} SVG
+                </h3>
             </div>
 
             <div class="flex-1 flex flex-col min-h-0 px-6">
@@ -160,7 +166,7 @@ try {
                                 name="editPrompt"
                                 type="text"
                                 class="input input-bordered flex-grow"
-                                placeholder="Décrivez les modifications à apporter au SVG..."
+                                placeholder={ui[locale].generator.promptLabel}
                                 required
                             />
                             <button
@@ -171,7 +177,9 @@ try {
                                 <span
                                     class="loading loading-spinner loading-sm hidden"
                                     id="loading-spinner"></span>
-                                <span id="btn-text">Modifier</span>
+                                <span id="btn-text"
+                                    >{ui[locale].generator.editButton}</span
+                                >
                             </button>
                         </div>
                     </form>
