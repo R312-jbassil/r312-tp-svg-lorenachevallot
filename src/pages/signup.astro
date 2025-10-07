@@ -88,6 +88,7 @@ if ("user" in Astro.locals && Astro.locals.user) {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const formData = new FormData(form);
+        const submitButton = form.querySelector('button[type="submit"]');
 
         // Vérification que les mots de passe correspondent
         const password = formData.get("password");
@@ -98,6 +99,13 @@ if ("user" in Astro.locals && Astro.locals.user) {
             status.className = "mt-4 text-center text-error";
             return;
         }
+
+        // Désactiver le bouton et afficher un indicateur de chargement
+        submitButton.disabled = true;
+        submitButton.innerHTML =
+            '<span class="loading loading-spinner"></span> Création du compte...';
+        status.textContent = "🔄 Création de votre compte en cours...";
+        status.className = "mt-4 text-center text-info";
 
         // Envoi des informations au serveur via l'API /api/signup
         try {
@@ -117,26 +125,35 @@ if ("user" in Astro.locals && Astro.locals.user) {
 
             // Traitement de la réponse
             if (res.ok) {
-                status.textContent = "✅ Inscription réussie ! Redirection...";
+                status.textContent =
+                    "✅ Inscription réussie ! Connexion automatique...";
                 status.className = "mt-4 text-center text-success";
 
-                // Sauvegarde des infos utilisateur si l'inscription connecte automatiquement
+                // Sauvegarde des infos utilisateur dans le localStorage
                 if (resData.user) {
                     localStorage.setItem("user", JSON.stringify(resData.user));
                 }
 
-                // Redirection vers la page d'accueil après un court délai
+                // Redirection immédiate vers la galerie pour voir son compte
                 setTimeout(() => {
-                    window.location.href = "/";
-                }, 1500);
+                    window.location.href = "/gallery";
+                }, 1000);
             } else {
                 status.textContent =
                     "❌ " + (resData.message || "Erreur lors de l'inscription");
                 status.className = "mt-4 text-center text-error";
+
+                // Réactiver le bouton en cas d'erreur
+                submitButton.disabled = false;
+                submitButton.innerHTML = "S'inscrire";
             }
         } catch (error) {
             status.textContent = "❌ Erreur de connexion au serveur";
             status.className = "mt-4 text-center text-error";
+
+            // Réactiver le bouton en cas d'erreur
+            submitButton.disabled = false;
+            submitButton.innerHTML = "S'inscrire";
         }
     });
 </script>
