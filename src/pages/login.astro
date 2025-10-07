@@ -1,0 +1,86 @@
+---
+if ("user" in Astro.locals && Astro.locals.user) {
+    // Si l'utilisateur est déjà connecté, on le redirige vers la page d'accueil
+    return Astro.redirect("/");
+}
+---
+
+<html lang="en" data-theme="light">
+    <head>
+        <title>Login</title>
+        <meta name="viewport" content="width=device-width" />
+        <link
+            href="https://cdn.jsdelivr.net/npm/daisyui@3.8.0/dist/full.css"
+            rel="stylesheet"
+            type="text/css"
+        />
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="min-h-screen flex items-center justify-center bg-base-200">
+        <div class="card w-full max-w-md shadow-xl bg-base-100">
+            <div class="card-body">
+                <h1 class="card-title text-3xl mb-4 justify-center">
+                    Connexion
+                </h1>
+                <!-- Formulaire de connexion -->
+                <form id="login-form" class="flex flex-col gap-4">
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Email"
+                        required
+                        class="input input-bordered"
+                    />
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Mot de passe"
+                        required
+                        class="input input-bordered"
+                    />
+                    <button type="submit" class="btn btn-primary w-full"
+                        >Se connecter</button
+                    >
+                </form>
+                <!-- Zone d'affichage du statut -->
+                <p id="status" class="mt-4 text-center text-error"></p>
+            </div>
+        </div>
+    </body>
+</html>
+
+<script>
+    //@ts-nocheck
+    // On retire toute ancienne information utilisateur du stockage local
+    localStorage.removeItem("user");
+    const form = document.getElementById("login-form");
+    const status = document.getElementById("status");
+
+    // Gestion de la soumission du formulaire
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+
+        // Envoi des informations au serveur via l'API /api/login
+        const res = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: formData.get("email"),
+                password: formData.get("password"),
+            }),
+            credentials: "include", // Permet d'inclure les cookies dans la requête
+        });
+
+        // Traitement de la réponse
+        if (res.ok) {
+            const resData = await res.json();
+            localStorage.setItem("user", JSON.stringify(resData.user)); // Sauvegarde des infos utilisateur
+            status.textContent = "✅ Connexion réussie !";
+            // Redirection vers la page d'accueil après un court délai
+            window.location.href = "/";
+        } else {
+            status.textContent = "❌ Email ou mot de passe invalide";
+        }
+    });
+</script>
