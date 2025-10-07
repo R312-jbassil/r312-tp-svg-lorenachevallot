@@ -1,7 +1,9 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import { ui } from "../../i18n/ui.js";
 import pb from "../../utils/pb";
 import { Collections } from "../../utils/pocketbase-types";
+const locale = (Astro.locals?.lang as 'en' | 'fr') ?? 'en';
 
 if (Astro.request.method === "POST") {
     try {
@@ -28,7 +30,7 @@ const svgList: any[] = await pb
 <Layout>
     <div class="max-w-6xl mx-auto p-6">
         <div class="mb-8">
-            <h1 class="text-4xl font-bold mb-2">Galerie des SVG</h1>
+            <h1 class="text-4xl font-bold mb-2">{ui[locale].gallery.title}</h1>
             <p class="text-base-content/70">
                 Découvrez tous vos SVG sauvegardés
             </p>

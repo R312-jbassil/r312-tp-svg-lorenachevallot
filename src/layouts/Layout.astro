@@ -1,18 +1,36 @@
----
 import "../styles/global.css";
----
+import { ui } from "../i18n/ui.js";
+
+const { title } = Astro.props as { title?: string };
+const locale = (Astro.locals?.lang as 'en' | 'fr') ?? 'en';
 
 <!doctype html>
-<html lang="en" data-theme="synthwave" class="h-full">
+<html lang={locale} data-theme="synthwave" class="h-full">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<title>{title ?? ui[locale].index.title}</title>
 	</head>
 	<body class="h-full">
 		<div class="h-full flex flex-col min-h-0">
+			<header class="navbar bg-base-200">
+				<div class="flex-1">
+					<a href="/" class="btn btn-ghost text-xl">{ui[locale].nav.home}</a>
+					<a href="/generate" class="btn btn-ghost">{ui[locale].nav.generator}</a>
+					<a href="/gallery" class="btn btn-ghost">{ui[locale].nav.gallery}</a>
+				</div>
+				<div class="flex-none">
+					<form method="POST" action={Astro.url.pathname}>
+						<select name="language" class="select select-bordered" onchange="this.form.submit()">
+							<option disabled selected="true">{ui[locale].nav.language}</option>
+							<option value="en">English</option>
+							<option value="fr">Français</option>
+						</select>
+					</form>
+				</div>
+			</header>
 			<div class="flex-1 min-h-0">
 				<slot />
 			</div>
