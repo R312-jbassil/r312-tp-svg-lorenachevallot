@@ -38,7 +38,20 @@ if ("user" in Astro.locals && Astro.locals.user) {
                         {ui[locale].login.loginButton}
                     </button>
                 </form>
+
+                <!-- Zone d'affichage du statut -->
                 <p id="status" class="mt-4 text-center text-error"></p>
+
+                <!-- Lien vers la page d'inscription -->
+                <div class="divider">{ui[locale].signup.or}</div>
+                <div class="text-center">
+                    <p class="text-base-content/70">
+                        {ui[locale].signup.noAccount}
+                        <a href="/signup" class="link link-primary">
+                            {ui[locale].signup.signupLink}
+                        </a>
+                    </p>
+                </div>
             </div>
         </div>
     </div>

@@ -1,6 +1,8 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { ui } from "../i18n/ui.js";
+// @ts-ignore
+const user = Astro.locals.user;
 
 const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
 ---

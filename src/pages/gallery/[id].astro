@@ -6,6 +6,8 @@ import {
     Collections,
     type NouvelleCollectionTpRecord,
 } from "../../utils/pocketbase-types";
+// @ts-ignore
+const user = Astro.locals.user;
 
 const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
 const id = Astro.params.id;

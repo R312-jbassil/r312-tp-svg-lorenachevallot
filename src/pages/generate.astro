@@ -2,6 +2,8 @@
 import Layout from "../layouts/Layout.astro";
 import { ui } from "../i18n/ui.js";
 const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
+// @ts-ignore
+const user = Astro.locals.user;
 ---
 
 <Layout title={ui[locale].generator.title}>
@@ -148,23 +150,38 @@ const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
     return await res.json();
   }
 
-  // Gestionnaire d'ǸvǸnements pour le bouton de sauvegarde
+  // Gestionnaire d'événements pour le bouton de sauvegarde
   if (saveButton) {
+    // Récupérer les informations de l'utilisateur depuis le localStorage
+    const user = JSON.parse(localStorage.getItem("user"));
+
     saveButton.addEventListener("click", async () => {
-      // Demande du nom du SVG �� l'utilisateur
-      const name = prompt("Donnez un nom �� votre crǸation :");
+      // Vérifier si l'utilisateur est connecté
+      if (!user || !user.id) {
+        alert("Vous devez être connecté pour sauvegarder un SVG.");
+        window.location.href = "/login";
+        return;
+      }
+
+      // Demande du nom du SVG à l'utilisateur
+      const name = prompt("Enter a name for the SVG:");
+      if (!name) return; // Si l'utilisateur annule
+
       const svgOutput = document.getElementById("svg-output")?.textContent;
-      console.log("PrǸparation de la sauvegarde :", JSON.stringify(svgOutput));
-      // PrǸparation des donnǸes pour la sauvegarde
+      console.log("Saving SVG: ", JSON.stringify(svgOutput));
+
+      // Préparation des données pour la sauvegarde avec l'ID utilisateur
       const params = {
-        name,
-        code_svg: svgOutput || "<svg></svg>", // SVG par dǸfaut si vide
-        chat_history: JSON.stringify(promptList), // Historique des Ǹchanges
+        name: name,
+        code_svg: svgOutput || "<svg></svg>",
+        chat_history: JSON.stringify(promptList),
+        user: user.id,
       };
-      // Sauvegarde et gestion de la rǸponse
+
+      // Sauvegarde et gestion de la réponse
       const result = await saveSVG(params);
       if (result.success) {
-        alert("SVG sauvegardǸ avec succ��s !");
+        alert("SVG sauvegardé avec succès !");
       } else {
         alert("Erreur lors de la sauvegarde : " + result.error);
       }

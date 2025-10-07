@@ -47,6 +47,20 @@ export const ui = {
       pleaseLogin: 'Please log in to access the gallery.',
       loginError: 'Login failed. Please check your credentials.',
       logoutSuccess: 'You have been logged out successfully.',
+    },
+    signup: {
+      title: 'Sign Up',
+      description: 'Create your account to start generating SVGs',
+      username: 'Username',
+      email: 'Email',
+      password: 'Password',
+      confirmPassword: 'Confirm Password',
+      signupButton: 'Sign Up',
+      or: 'or',
+      alreadyHaveAccount: 'Already have an account?',
+      loginLink: 'Log in here',
+      noAccount: 'Don\'t have an account?',
+      signupLink: 'Sign up here',
     }
   },
   fr: {
@@ -97,6 +111,20 @@ export const ui = {
       pleaseLogin: 'Veuillez vous connecter pour accéder à la galerie.',
       loginError: 'Échec de la connexion. Veuillez vérifier vos identifiants.',
       logoutSuccess: 'Vous avez été déconnecté avec succès.',
+    },
+    signup: {
+      title: 'Inscription',
+      description: 'Créez votre compte pour commencer à générer des SVG',
+      username: 'Nom d\'utilisateur',
+      email: 'Adresse e-mail',
+      password: 'Mot de passe',
+      confirmPassword: 'Confirmer le mot de passe',
+      signupButton: 'S\'inscrire',
+      or: 'ou',
+      alreadyHaveAccount: 'Vous avez déjà un compte ?',
+      loginLink: 'Connectez-vous ici',
+      noAccount: 'Vous n\'avez pas de compte ?',
+      signupLink: 'Inscrivez-vous ici',
     }
   },
 };

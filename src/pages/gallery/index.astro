@@ -3,7 +3,8 @@ import Layout from "../../layouts/Layout.astro";
 import { ui } from "../../i18n/ui.js";
 import pb from "../../utils/pb";
 import { Collections } from "../../utils/pocketbase-types";
-const locale = (Astro.locals?.lang as 'en' | 'fr') ?? 'en';
+const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
+const user = Astro.locals.user;
 
 if (Astro.request.method === "POST") {
     try {
@@ -24,6 +25,7 @@ const svgList: any[] = await pb
     .collection(Collections.NouvelleCollectionTp)
     .getFullList({
         sort: "-created",
+        filter: `user = "${user.id}"`,
     });
 ---
 
