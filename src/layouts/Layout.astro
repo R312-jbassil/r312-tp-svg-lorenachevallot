@@ -1,9 +1,11 @@
+---
 import "../styles/global.css";
 import { ui } from "../i18n/ui.js";
 
 const { title } = Astro.props as { title?: string };
 const locale = (Astro.locals?.lang as 'en' | 'fr') ?? 'en';
 
+---
 <!doctype html>
 <html lang={locale} data-theme="synthwave" class="h-full">
 	<head>
@@ -22,11 +24,11 @@ const locale = (Astro.locals?.lang as 'en' | 'fr') ?? 'en';
 					<a href="/gallery" class="btn btn-ghost">{ui[locale].nav.gallery}</a>
 				</div>
 				<div class="flex-none">
-					<form method="POST" action={Astro.url.pathname}>
+					<form method="POST">
+						<label class="label mr-2 text-sm opacity-70">{ui[locale].nav.language}</label>
 						<select name="language" class="select select-bordered" onchange="this.form.submit()">
-							<option disabled selected="true">{ui[locale].nav.language}</option>
-							<option value="en">English</option>
-							<option value="fr">Français</option>
+							<option value="en" selected={locale === 'en'}>English</option>
+							<option value="fr" selected={locale === 'fr'}>Français</option>
 						</select>
 					</form>
 				</div>
