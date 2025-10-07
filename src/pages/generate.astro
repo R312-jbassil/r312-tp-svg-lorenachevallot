@@ -1,7 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { ui } from "../i18n/ui.js";
-const locale = (Astro.locals?.lang as 'en' | 'fr') ?? 'en';
+const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
 ---
 
 <Layout title={ui[locale].generator.title}>
@@ -13,7 +13,9 @@ const locale = (Astro.locals?.lang as 'en' | 'fr') ?? 'en';
         id="svg-container"
         class="border border-base-300 rounded-box h-[80dvh] flex items-center justify-center"
       >
-        <p class="text-base-content/70">{ui[locale].generator.contentPlaceholder}</p>
+        <p class="text-base-content/70">
+          {ui[locale].generator.contentPlaceholder}
+        </p>
       </div>
 
       <!-- Mockup code -->
@@ -39,9 +41,13 @@ const locale = (Astro.locals?.lang as 'en' | 'fr') ?? 'en';
       <button id="generate-button" class="btn btn-primary join-item">
         {ui[locale].generator.generateButton}
       </button>
-      <button id="edit-button" class="btn btn-secondary m-2">{ui[locale].generator.editButton}</button>
+      <button id="edit-button" class="btn btn-secondary m-2"
+        >{ui[locale].generator.editButton}</button
+      >
       <button id="save-button" class="btn btn-accent m-2"> Sauvegarder </button>
-      <a href="/gallery" class="btn btn-outline m-2">{ui[locale].generator.viewButton}</a>
+      <a href="/gallery" class="btn btn-outline m-2"
+        >{ui[locale].generator.viewButton}</a
+      >
     </div>
   </div>
 </Layout>
@@ -165,5 +171,3 @@ const locale = (Astro.locals?.lang as 'en' | 'fr') ?? 'en';
     });
   }
 </script>
-
-

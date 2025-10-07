@@ -3,9 +3,9 @@ import "../styles/global.css";
 import { ui } from "../i18n/ui.js";
 
 const { title } = Astro.props as { title?: string };
-const locale = (Astro.locals?.lang as 'en' | 'fr') ?? 'en';
-
+const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
 ---
+
 <!doctype html>
 <html lang={locale} data-theme="synthwave" class="h-full">
 	<head>
@@ -19,16 +19,28 @@ const locale = (Astro.locals?.lang as 'en' | 'fr') ?? 'en';
 		<div class="h-full flex flex-col min-h-0">
 			<header class="navbar bg-base-200">
 				<div class="flex-1">
-					<a href="/" class="btn btn-ghost text-xl">{ui[locale].nav.home}</a>
-					<a href="/generate" class="btn btn-ghost">{ui[locale].nav.generator}</a>
-					<a href="/gallery" class="btn btn-ghost">{ui[locale].nav.gallery}</a>
+					<a href="/" class="btn btn-ghost text-xl"
+						>{ui[locale].nav.home}</a
+					>
+					<a href="/generate" class="btn btn-ghost"
+						>{ui[locale].nav.generator}</a
+					>
+					<a href="/gallery" class="btn btn-ghost"
+						>{ui[locale].nav.gallery}</a
+					>
 				</div>
 				<div class="flex-none">
-					<form method="POST">
-						<label class="label mr-2 text-sm opacity-70">{ui[locale].nav.language}</label>
-						<select name="language" class="select select-bordered" onchange="this.form.submit()">
-							<option value="en" selected={locale === 'en'}>English</option>
-							<option value="fr" selected={locale === 'fr'}>Français</option>
+					<form method="POST" action={Astro.url.pathname}>
+						<select
+							name="language"
+							class="select select-bordered"
+							onchange="this.form.submit()"
+						>
+							<option disabled selected="true"
+								>{ui[locale].nav.language}</option
+							>
+							<option value="en">English</option>
+							<option value="fr">Français</option>
 						</select>
 					</form>
 				</div>
