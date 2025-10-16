@@ -1,4 +1,4 @@
----
+﻿---
 import Layout from "../layouts/Layout.astro";
 import { ui } from "../i18n/ui.js";
 
@@ -61,21 +61,18 @@ if ("user" in Astro.locals && Astro.locals.user) {
     </div>
 </Layout>
 
-<script type="module">
+<script>
     //@ts-nocheck
-    import pb from "/src/utils/pb.ts";
     // On retire toute ancienne information utilisateur du stockage local
     localStorage.removeItem("user");
     const form = document.getElementById("login-form");
     const status = document.getElementById("status");
-    const googleBtn = document.getElementById("google-login");
 
     // Gestion de la soumission du formulaire
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const formData = new FormData(form);
 
-        // Envoi des informations au serveur via l'API /api/login
         const res = await fetch("/api/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -83,59 +80,18 @@ if ("user" in Astro.locals && Astro.locals.user) {
                 email: formData.get("email"),
                 password: formData.get("password"),
             }),
-            credentials: "include", // Permet d'inclure les cookies dans la requête
+            credentials: "include",
         });
 
-        // Traitement de la réponse
         if (res.ok) {
             const resData = await res.json();
-            localStorage.setItem("user", JSON.stringify(resData.user)); // Sauvegarde des infos utilisateur
-            status.textContent = "✅ Connexion réussie !";
-            // Redirection vers la page d'accueil après un court délai
+            localStorage.setItem("user", JSON.stringify(resData.user));
+            status.textContent = "Connexion réussie !";
             window.location.href = "/";
         } else {
-            status.textContent = "❌ Email ou mot de passe invalide";
+            status.textContent = "Email ou mot de passe invalide";
         }
     });
-
-    // Connexion via Google (PocketBase OAuth2)
-    if (googleBtn) {
-        googleBtn.addEventListener("click", async () => {
-            status.textContent = "";
-            try {
-                const redirectUrl = `${window.location.origin}/oauth2-redirect`;
-                const methods = await pb.collection('users').listAuthMethods();
-                const provider = methods?.authProviders?.find(p => p.name === 'google');
-                if (!provider) {
-                    status.textContent = "Provider Google non configuré.";
-                    return;
-                }
-
-                // Démarre l'auth OAuth2 (ouvre une popup et attend le redirect)
-                await pb.collection('users').authWithOAuth2({
-                    provider: provider.name,
-                    url: provider.authUrl,
-                    codeVerifier: provider.codeVerifier,
-                    redirectUrl,
-                });
-
-                if (!pb.authStore.isValid) throw new Error('Auth store vide après OAuth');
-
-                // Pose le cookie httpOnly côté serveur
-                const cookie = pb.authStore.exportToCookie();
-                const res = await fetch('/api/setAuthCookie', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cookie })
-                });
-                if (!res.ok) throw new Error('Set cookie failed');
-
-                localStorage.setItem('user', JSON.stringify(pb.authStore.model));
-                window.location.href = '/';
-            } catch (err) {
-                console.error('Google OAuth error:', err);
-                status.textContent = "Erreur de connexion Google. Vérifiez la configuration du provider et les popups.";
-            }
-        });
-    }
 </script>
+<script type="module" src="/src/pages/login-google.client.js"></script>
+

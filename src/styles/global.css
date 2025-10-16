@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* Configure DaisyUI themes for Tailwind v4 */
 @plugin "daisyui" {
-    themes: light --winter, dark --forest;
+  themes: light, night;
 }

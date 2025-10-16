@@ -1,14 +1,11 @@
 ﻿import pb from "../utils/pb";
 
 export const onRequest = async (context, next) => {
-  const cookie = context.cookies.get("pb_auth")?.value;
-  if (cookie) {
-    pb.authStore.loadFromCookie(cookie); // Charge les infos d'auth depuis le cookie
-    if (pb.authStore.isValid) {
-      // Si le token est valide, ajoute les données utilisateur dans Astro.locals
-      context.locals.user = pb.authStore.record;
-    }
+  pb.authStore.loadFromCookie(context.request.headers.get('cookie') ?? '');
+  if (pb.authStore.isValid) {
+    context.locals.user = pb.authStore.record;
   }
+  
 
   // Pour les routes API, on exige l'authentification sauf pour /api/login et /api/signup
   if (context.url.pathname.startsWith('/api/')) {
