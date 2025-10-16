@@ -1,4 +1,4 @@
-import pb from "../utils/pb";
+﻿import pb from "../utils/pb";
 
 export const onRequest = async (context, next) => {
   const cookie = context.cookies.get("pb_auth")?.value;
@@ -12,7 +12,7 @@ export const onRequest = async (context, next) => {
 
   // Pour les routes API, on exige l'authentification sauf pour /api/login et /api/signup
   if (context.url.pathname.startsWith('/api/')) {
-    if (!context.locals.user && context.url.pathname !== '/api/login' && context.url.pathname !== '/api/signup') {
+    if (!context.locals.user && context.url.pathname !== '/api/login' && context.url.pathname !== '/api/signup' && context.url.pathname !== '/api/setAuthCookie') {
       // Si l'utilisateur n'est pas connecté, on retourne une erreur 401 (non autorisé)
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
@@ -20,8 +20,11 @@ export const onRequest = async (context, next) => {
   }
 
   // Pour les autres pages, si l'utilisateur n'est pas connecté, on le redirige vers /login
+  // Ne pas bloquer les assets/modules du dev server (Vite) ni la page de redirection OAuth
+  const p = context.url.pathname;
+  const isAsset = p.startsWith('/_astro') || p.startsWith('/@fs') || p.startsWith('/@id') || p.startsWith('/@vite') || p.startsWith('/src') || p.startsWith('/node_modules') || p.startsWith('/assets') || p.startsWith('/favicon') || p.startsWith('/_image');
   if (!context.locals.user) {
-    if (context.url.pathname !== '/login' && context.url.pathname !== '/signup' && context.url.pathname !== '/')
+    if (!isAsset && p !== '/login' && p !== '/signup' && p !== '/' && p !== '/oauth2-redirect')
       return Response.redirect(new URL('/login', context.url), 303);
   }
   // Skip middleware for API routes
@@ -58,4 +61,5 @@ export const onRequest = async (context, next) => {
 
   return next();
 };
+
 

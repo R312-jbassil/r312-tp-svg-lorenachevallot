@@ -1,4 +1,4 @@
----
+﻿---
 import Layout from "../layouts/Layout.astro";
 import { ui } from "../i18n/ui.js";
 const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
@@ -7,141 +7,263 @@ const user = Astro.locals.user;
 ---
 
 <Layout title={ui[locale].generator.title}>
-  <div class="space-y-6 p-6">
+  <div class="h-[100dvh] flex flex-col gap-4 p-4 md:p-6 overflow-hidden">
     <!-- Partie haute : SVG + mockup -->
-    <div class="grid lg:grid-cols-2 gap-6">
-      <!-- Conteneur SVG -->
-      <div
-        id="svg-container"
-        class="border border-base-300 rounded-box h-[80dvh] flex items-center justify-center"
-      >
-        <p class="text-base-content/70">
-          {ui[locale].generator.contentPlaceholder}
-        </p>
+    <div class="grid gap-4 lg:grid-cols-2 flex-1 min-h-0">
+      <!-- Chat unique (DaisyUI) -->
+      <div class="card border border-base-300 rounded-box h-full min-h-0 shadow-sm">
+        <div class="card-body p-0 h-full flex flex-col min-h-0">
+          <div class="px-4 py-3 border-b border-base-300 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="avatar"><div class="w-6 rounded"><img alt="bot" src="https://img.daisyui.com/images/profile/demo/kenobee@192.webp" /></div></div>
+              <h2 class="font-semibold">Assistant</h2>
+            </div>
+            <div class="badge badge-success badge-outline">Online</div>
+          </div>
+          <div class="p-4 h-full flex flex-col gap-3 min-h-0">
+            <div id="chat-log" class="grow overflow-auto space-y-3 pr-1"></div>
+            <!-- Stockage invisible du dernier code pour la sauvegarde -->
+            <pre id="svg-output" class="hidden"></pre>
+          </div>
+        </div>
       </div>
 
-      <!-- Mockup code -->
-      <div class="mockup-window border border-base-300 h-[80dvh]">
-        <div class="border-t border-base-300 h-80 overflow-auto p-4">
-          <pre
-            id="svg-output"
-            class="whitespace-pre-wrap">
-            <code>{ui[locale].generator.codePlaceholder}</code>
-          </pre>
+      <!-- Prévisualisation (même taille que le chat) -->
+      <div class="card border border-base-300 rounded-box h-full min-h-0 shadow-sm">
+        <div class="card-body p-0 h-full flex flex-col min-h-0">
+          <div class="px-4 py-3 border-b border-base-300 flex items-center justify-between">
+            <h2 class="font-semibold">Prévisualisation</h2>
+            <div class="badge badge-ghost">SVG</div>
+          </div>
+          <div class="p-4 h-full flex min-h-0">
+            <div
+              id="preview-container"
+              class="flex-1 h-full w-full overflow-auto flex items-center justify-center bg-base-200 rounded-box"
+            >
+              <p class="text-base-content/70 text-center">{ui[locale].generator.contentPlaceholder}</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Partie basse : input + boutons -->
-    <div class="join w-full items-center">
-      <input
-        id="user-prompt"
-        type="text"
-        placeholder={ui[locale].generator.promptLabel}
-        class="input input-bordered join-item w-full"
-      />
-      <button id="generate-button" class="btn btn-primary join-item">
-        {ui[locale].generator.generateButton}
-      </button>
-      <button id="edit-button" class="btn btn-secondary m-2"
-        >{ui[locale].generator.editButton}</button
-      >
-      <button id="save-button" class="btn btn-accent m-2"> Sauvegarder </button>
-      <a href="/gallery" class="btn btn-outline m-2"
-        >{ui[locale].generator.viewButton}</a
-      >
+    <!-- Barre de commande plein largeur -->
+    <div class="card border border-base-300 shadow-sm sticky bottom-0 z-20 backdrop-blur bg-base-100/80 shrink-0">
+      <div class="card-body p-3">
+        <div class="join w-full items-center">
+          <input
+            id="user-prompt"
+            type="text"
+            placeholder={ui[locale].generator.promptLabel}
+            class="input input-bordered join-item w-full"
+          />
+          <button id="generate-button" class="btn btn-primary join-item" aria-label="Generate">
+            {ui[locale].generator.generateButton}
+          </button>
+          <button id="edit-button" class="btn btn-secondary join-item ml-2" aria-label="Edit">
+            {ui[locale].generator.editButton}
+          </button>
+          <button id="save-button" class="btn btn-accent ml-2" aria-label="Save">Sauvegarder</button>
+          <a href="/gallery" class="btn btn-outline ml-2" aria-label="View Gallery">
+            {ui[locale].generator.viewButton}
+          </a>
+        </div>
+      </div>
     </div>
+
+
   </div>
 </Layout>
 
 <script>
   //@ts-nocheck
   let promptList = [];
-  async function generateSVG(prompt) {
-    const res = await fetch("/api/generateSVG", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(prompt),
-    });
-    const data = await res.json();
-    return data.svg;
+
+  function nowTime() {
+    const d = new Date();
+    return `${d.getHours().toString().padStart(2, "0")}:${d
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
   }
+
+  function escapeHtml(text) {
+    const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
+    return String(text).replace(/[&<>"']/g, (m) => map[m]);
+  }
+
+  function appendChatBubble(role, content) {
+    const chatLog = document.getElementById("chat-log");
+    if (!chatLog) return;
+    const isUser = role === "user";
+    const align = isUser ? "chat-end" : "chat-start";
+    const name = isUser ? "You" : "SVG Bot";
+    const avatar = isUser
+      ? "https://img.daisyui.com/images/profile/demo/anakeen@192.webp"
+      : "https://img.daisyui.com/images/profile/demo/kenobee@192.webp";
+    const bubbleText = escapeHtml(content);
+    const wrapper = document.createElement("div");
+    wrapper.className = `chat ${align}`;
+    const bubbleTone = isUser ? 'chat-bubble-primary' : 'chat-bubble-secondary';
+    wrapper.innerHTML = `
+      <div class="chat-image avatar">
+        <div class="w-10 rounded-full">
+          <img alt="avatar" src="${avatar}" />
+        </div>
+      </div>
+      <div class="chat-header">
+        ${name}
+        <time class="text-xs opacity-50">${nowTime()}</time>
+      </div>
+      <div class="chat-bubble ${bubbleTone}">${bubbleText}</div>
+    `;
+    chatLog.appendChild(wrapper);
+    chatLog.parentElement?.scrollTo({ top: chatLog.parentElement.scrollHeight, behavior: "smooth" });
+  }
+
+  function addLoadingBubble() {
+    const chatLog = document.getElementById("chat-log");
+    if (!chatLog) return null;
+    const wrapper = document.createElement("div");
+    wrapper.className = "chat chat-start";
+    wrapper.innerHTML = `
+      <div class="chat-image avatar">
+        <div class="w-10 rounded-full">
+          <img alt="avatar" src="https://img.daisyui.com/images/profile/demo/kenobee@192.webp" />
+        </div>
+      </div>
+      <div class="chat-header">SVG Bot</div>
+      <div class="chat-bubble"><span class="loading loading-dots"></span></div>
+    `;
+    chatLog.appendChild(wrapper);
+    chatLog.parentElement?.scrollTo({ top: chatLog.parentElement.scrollHeight, behavior: "smooth" });
+    return wrapper;
+  }
+
+  function appendAssistantCodeBubble(svgMarkup) {
+    const chatLog = document.getElementById("chat-log");
+    if (!chatLog) return;
+    const wrapper = document.createElement("div");
+    wrapper.className = "chat chat-start";
+    wrapper.innerHTML = `
+      <div class="chat-image avatar">
+        <div class="w-10 rounded-full">
+          <img alt="avatar" src="https://img.daisyui.com/images/profile/demo/kenobee@192.webp" />
+        </div>
+      </div>
+      <div class="chat-header">
+        SVG Bot
+        <time class="text-xs opacity-50">${nowTime()}</time>
+      </div>
+      <div class="chat-bubble chat-bubble-secondary overflow-auto max-w-full p-0">
+        <pre class="whitespace-pre-wrap break-words p-3 m-0"><code>${escapeHtml(svgMarkup)}</code></pre>
+      </div>
+    `;
+    chatLog.appendChild(wrapper);
+    chatLog.parentElement?.scrollTo({ top: chatLog.parentElement.scrollHeight, behavior: "smooth" });
+  }
+
+  function setPreview(svgMarkup) {
+    const preview = document.getElementById("preview-container");
+    if (preview) preview.innerHTML = svgMarkup || "";
+  }
+
+  async function generateSVG(messages) {
+    try {
+      const res = await fetch("/api/generateSVG", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(messages),
+      });
+      if (!res.ok) {
+        const errTxt = await res.text().catch(() => String(res.status));
+        throw new Error(`API error ${res.status}: ${errTxt}`);
+      }
+      const data = await res.json();
+      const raw = data?.svg;
+      const content = typeof raw === "string" ? raw : raw?.content || "";
+      const match = content.match(/<svg[\s\S]*?<\/svg>/i);
+      return match ? match[0] : "";
+    } catch (e) {
+      console.error("generateSVG failed:", e);
+      return "";
+    }
+  }
+
   const editButton = document.getElementById("edit-button");
+  const generateButton = document.getElementById("generate-button");
+  const saveButton = document.getElementById("save-button");
 
   async function handleEdit() {
     let prompt = "";
     let aiResponse = "";
     const promptElement = document.getElementById("user-prompt");
     prompt = promptElement ? promptElement.value : "";
-    console.log("Prompt soumis : ", prompt);
-    // Ajout du prompt de l'utilisateur �� la liste
     promptList.push({ role: "user", content: prompt });
-    const svgContainer = document.getElementById("svg-container");
-    // Afficher un spinner de chargement
-    svgContainer.innerHTML += `<span class="loading loading-ring loading-xl"></span>`;
+    appendChatBubble("user", prompt || "");
+
+    const loading = addLoadingBubble();
     generateButton.disabled = true;
     editButton.disabled = true;
     let svgOutput = document.getElementById("svg-output");
-    // Appeler la fonction pour gǸnǸrer le SVG
+
     aiResponse = await generateSVG(promptList);
-    // Extraire le SVG de la rǸponse
-    const svgMatch = aiResponse.content.match(/<svg[\s\S]*?<\/svg>/i);
-    aiResponse.content = svgMatch ? svgMatch[0] : "";
-    console.log("Code SVG gǸnǸrǸ : ", aiResponse.content);
-    // Ajouter la rǸponse de l'IA �� la liste des prompts
-    promptList.push(aiResponse);
-    // Afficher le SVG gǸnǸrǸ
-    svgOutput.textContent = aiResponse.content;
-    svgContainer.innerHTML = aiResponse.content;
-    // RǸactiver les boutons
+    if (!aiResponse) {
+      if (loading) loading.remove();
+      appendChatBubble("assistant", "Erreur: génération indisponible. Connectez-vous ou réessayez.");
+    } else {
+      promptList.push({ role: "assistant", content: aiResponse });
+      if (svgOutput) svgOutput.textContent = aiResponse;
+      if (loading) loading.remove();
+      appendAssistantCodeBubble(aiResponse);
+      setPreview(aiResponse);
+    }
+
     generateButton.disabled = false;
     editButton.disabled = false;
-    console.log("Historique des prompts : ", promptList);
   }
 
   if (editButton) {
     editButton.addEventListener("click", handleEdit);
   }
+
   async function handleSubmit() {
     let prompt = "";
     let aiResponse = "";
     const promptElement = document.getElementById("user-prompt");
     prompt = promptElement ? promptElement.value : "";
-    console.log("submitted: ", prompt);
-    // RǸinitialiser la liste des prompts
+    const chatLog = document.getElementById("chat-log");
+    if (chatLog) chatLog.innerHTML = "";
     promptList.length = 0;
     promptList.push({ role: "user", content: prompt });
-    const svgContainer = document.getElementById("svg-container");
-    // Afficher un spinner
-    svgContainer.innerHTML = `<span class="loading loading-ring loading-xl"></span>`;
+    appendChatBubble("user", prompt || "");
+
+    const loading = addLoadingBubble();
     generateButton.disabled = true;
     editButton.disabled = true;
     let svgOutput = document.getElementById("svg-output");
-    // Appeler la fonction pour gǸnǸrer le SVG
+
     aiResponse = await generateSVG(promptList);
-    // Extraire le SVG de la rǸponse
-    const svgMatch = aiResponse.content.match(/<svg[\s\S]*?<\/svg>/i);
-    aiResponse.content = svgMatch ? svgMatch[0] : "";
-    console.log("svgCode: ", aiResponse.content);
-    // Ajouter la rǸponse de l'IA �� la liste des prompts
-    promptList.push(aiResponse);
-    // Afficher le SVG gǸnǸrǸ
-    svgOutput.textContent = aiResponse.content;
-    svgContainer.innerHTML = aiResponse.content;
-    // RǸactiver les boutons
+    if (!aiResponse) {
+      if (loading) loading.remove();
+      appendChatBubble("assistant", "Erreur: génération indisponible. Connectez-vous ou réessayez.");
+    } else {
+      promptList.push({ role: "assistant", content: aiResponse });
+      if (svgOutput) svgOutput.textContent = aiResponse;
+      if (loading) loading.remove();
+      appendAssistantCodeBubble(aiResponse);
+      setPreview(aiResponse);
+    }
+
     generateButton.disabled = false;
     editButton.disabled = false;
   }
 
-  const generateButton = document.getElementById("generate-button");
   if (generateButton) {
     generateButton.addEventListener("click", handleSubmit);
   }
-  // Fonction utilitaire pour sauvegarder le SVG
-  const saveButton = document.getElementById("save-button");
 
   async function saveSVG(params) {
-    // Envoi de la requǦte �� notre endpoint
     const res = await fetch("/api/saveSVG", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -150,35 +272,23 @@ const user = Astro.locals.user;
     return await res.json();
   }
 
-  // Gestionnaire d'événements pour le bouton de sauvegarde
   if (saveButton) {
-    // Récupérer les informations de l'utilisateur depuis le localStorage
     const user = JSON.parse(localStorage.getItem("user"));
-
     saveButton.addEventListener("click", async () => {
-      // Vérifier si l'utilisateur est connecté
       if (!user || !user.id) {
         alert("Vous devez être connecté pour sauvegarder un SVG.");
         window.location.href = "/login";
         return;
       }
-
-      // Demande du nom du SVG à l'utilisateur
       const name = prompt("Enter a name for the SVG:");
-      if (!name) return; // Si l'utilisateur annule
-
+      if (!name) return;
       const svgOutput = document.getElementById("svg-output")?.textContent;
-      console.log("Saving SVG: ", JSON.stringify(svgOutput));
-
-      // Préparation des données pour la sauvegarde avec l'ID utilisateur
       const params = {
         name: name,
         code_svg: svgOutput || "<svg></svg>",
         chat_history: JSON.stringify(promptList),
         user: user.id,
       };
-
-      // Sauvegarde et gestion de la réponse
       const result = await saveSVG(params);
       if (result.success) {
         alert("SVG sauvegardé avec succès !");
@@ -188,3 +298,4 @@ const user = Astro.locals.user;
     });
   }
 </script>
+
