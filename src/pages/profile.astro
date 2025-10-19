@@ -1,0 +1,60 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const user = (Astro.locals?.user) ?? null;
+const PB_URL = 'http://127.0.0.1:8090';
+const avatarUrl = (user?.avatar)
+  ? `${PB_URL}/api/files/${user.collectionId}/${user.id}/${user.avatar}?thumb=128x128`
+  : null;
+---
+
+<Layout title="Profil">
+  <div class="flex items-center justify-center p-6">
+    <div class="card w-full max-w-xl bg-base-100 shadow-xl">
+      <div class="card-body gap-4">
+        <h2 class="card-title">Mon profil</h2>
+
+        {user ? (
+          <div class="flex items-start gap-4">
+            <div class="avatar">
+              {avatarUrl ? (
+                <div class="w-20 h-20 rounded-full overflow-hidden">
+                  <img src={avatarUrl} alt="avatar" class="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div class="bg-neutral text-neutral-content rounded-full w-16 h-16 flex items-center justify-center">
+                  <span class="text-xl">{(user.name ?? user.username ?? user.email ?? 'U').slice(0,1).toUpperCase()}</span>
+                </div>
+              )}
+            </div>
+            <div class="flex-1 grid grid-cols-1 gap-2">
+              <div>
+                <div class="text-sm opacity-60">Nom</div>
+                <div class="font-medium">{user.name ?? '-'}</div>
+              </div>
+              <div>
+                <div class="text-sm opacity-60">Email</div>
+                <div class="font-medium">{user.email ?? '-'}</div>
+              </div>
+              <div>
+                <div class="text-sm opacity-60">Identifiant</div>
+                <div class="font-medium">{user.username ?? user.id}</div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div class="alert alert-warning">
+            <span>Non connecté. Redirection…</span>
+          </div>
+        )}
+
+        <div class="card-actions justify-end mt-4">
+          <a class="btn" href="/">Accueil</a>
+          <form method="POST" action="/api/logout">
+            <button class="btn btn-error" type="submit">Se déconnecter</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
