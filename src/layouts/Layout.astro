@@ -1,118 +1,175 @@
 ---
 import "../styles/global.css";
 import { ui } from "../i18n/ui.js";
+import Avatar from "../components/Avatar.astro";
 
 const { title } = Astro.props as { title?: string };
 const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
-const PB_URL = 'http://127.0.0.1:8090';
 const user = Astro.locals?.user as any;
-const avatarUrl = (user?.avatar)
-  ? `${PB_URL}/api/files/${user.collectionId}/${user.id}/${user.avatar}?thumb=48x48`
-  : null;
 ---
 
 <!doctype html>
 <html lang={locale} data-theme="night" class="h-full">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>{title ?? ui[locale].index.title}</title>
-        <script>
-          (function () {
-            try {
-              const stored = localStorage.getItem('theme');
-              const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-              const theme = stored || (prefersDark ? 'night' : 'light');
-              document.documentElement.setAttribute('data-theme', theme);
-            } catch (_) {}
-          })();
-        </script>
-	</head>
-	<body class="h-full">
-		<div class="h-full flex flex-col min-h-0">
-			<header class="navbar bg-base-200">
-				<div class="flex-1">
-					<a href="/" class="btn btn-ghost text-xl"
-						>{ui[locale].nav.home}</a
-					>
-					<a href="/generate" class="btn btn-ghost"
-						>{ui[locale].nav.generator}</a
-					>
-					<a href="/gallery" class="btn btn-ghost"
-						>{ui[locale].nav.gallery}</a
-					>
-				</div>
-				<!-- User menu dropdown replacing plain Logout button -->
-				{user ? (
-					<div class="ml-2 mr-6 dropdown dropdown-end">
-						<label tabindex="0" class="btn btn-ghost btn-circle" aria-label="Menu utilisateur">
-							{avatarUrl ? (
-								<div class="avatar">
-									<div class="w-10 h-10 rounded-full overflow-hidden">
-										<img src={avatarUrl} alt="avatar" class="w-full h-full object-cover" />
-									</div>
-								</div>
-							) : (
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-									<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5a8.25 8.25 0 1115 0v0A12.317 12.317 0 0012 15.75a12.317 12.317 0 00-7.5 3.75z" />
-								</svg>
-							)}
-						</label>
-						<ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-56">
-							<li class="menu-title">
-								<span>{Astro.locals?.user?.name ?? Astro.locals?.user?.email ?? 'Utilisateur'}</span>
-							</li>
-							<li><a href="/profile">Profil</a></li>
-							<li>
-								<form method="POST" action="/api/logout">
-									<button type="submit">Se déconnecter</button>
-								</form>
-							</li>
-						</ul>
-					</div>
-				) : (
-					<a href="/login" class="btn btn-outline ml-2 mr-6">Connexion</a>
-				)}
-				<div class="flex-none flex items-center gap-4 pr-4">
-					<label class="swap swap-rotate" aria-label="Toggle theme">
-						<input id="theme-toggle" type="checkbox" />
-						<svg class="swap-on h-6 w-6 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z" /></svg>
-						<svg class="swap-off h-6 w-6 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" /></svg>
-					</label>
-					<script>
-					  document.addEventListener('DOMContentLoaded', function () {
-					    const toggle = document.getElementById('theme-toggle');
-					    if (!toggle) return;
-            const current = document.documentElement.getAttribute('data-theme');
-            toggle.checked = (current === 'light');
-            toggle.addEventListener('change', function () {
-              const next = toggle.checked ? 'light' : 'night';
-              document.documentElement.setAttribute('data-theme', next);
-              try { localStorage.setItem('theme', next); } catch (_) {}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title ?? ui[locale].index.title}</title>
+    <script>
+      (function () {
+        try {
+          const stored = localStorage.getItem("theme");
+          const prefersDark =
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches;
+          const theme = stored || (prefersDark ? "night" : "light");
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (_) {}
+      })();
+    </script>
+  </head>
+  <body class="h-full">
+    <div class="h-full flex flex-col min-h-0">
+      <header class="navbar bg-base-200">
+        <div class="flex-1">
+          <a href="/" class="btn btn-ghost text-xl">{ui[locale].nav.home}</a>
+          <a href="/generate" class="btn btn-ghost"
+            >{ui[locale].nav.generator}</a
+          >
+          <a href="/gallery" class="btn btn-ghost">{ui[locale].nav.gallery}</a>
+        </div>
+        <!-- User menu dropdown replacing plain Logout button -->
+        {
+          user ? (
+            <div class="ml-2 mr-6 dropdown dropdown-end">
+              <label
+                tabindex="0"
+                class="btn btn-ghost btn-circle"
+                aria-label="Menu utilisateur"
+              >
+                <Avatar user={user} size="sm" />
+              </label>
+              <ul
+                tabindex="0"
+                class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-56"
+              >
+                <li class="menu-title">
+                  <span>
+                    {user?.name ??
+                      user?.username ??
+                      user?.email ??
+                      "Utilisateur"}
+                  </span>
+                </li>
+                <li>
+                  <a href="/profile">Profil</a>
+                </li>
+                <li>
+                  <form method="POST" action="/api/logout">
+                    <button type="submit">Se déconnecter</button>
+                  </form>
+                </li>
+              </ul>
+            </div>
+          ) : (
+            <a href="/login" class="btn btn-outline ml-2 mr-6">
+              Connexion
+            </a>
+          )
+        }
+        <div class="flex-none flex items-center gap-4 pr-4">
+          <label class="swap swap-rotate" aria-label="Toggle theme">
+            <input id="theme-toggle" type="checkbox" />
+            <svg
+              class="swap-on h-6 w-6 fill-current"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              ><path
+                d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"
+              ></path></svg
+            >
+            <svg
+              class="swap-off h-6 w-6 fill-current"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              ><path
+                d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z"
+              ></path></svg
+            >
+          </label>
+          <script>
+            document.addEventListener("DOMContentLoaded", function () {
+              const toggle = document.getElementById(
+                "theme-toggle"
+              ) as HTMLInputElement;
+              if (!toggle) return;
+              const current =
+                document.documentElement.getAttribute("data-theme");
+              toggle.checked = current === "light";
+              toggle.addEventListener("change", function () {
+                const next = toggle.checked ? "light" : "night";
+                document.documentElement.setAttribute("data-theme", next);
+                try {
+                  localStorage.setItem("theme", next);
+                } catch (_) {}
+              });
             });
-					  });
-					</script>
-					<form method="POST" action={Astro.url.pathname}>
-						<select
-							name="language"
-							class="select select-bordered"
-							onchange="this.form.submit()"
-						>
-							<option disabled selected="true"
-								>{ui[locale].nav.language}</option
-							>
-							<option value="en">English</option>
-							<option value="fr">Français</option>
-						</select>
-					</form>
-				</div>
-			</header>
-			<div class="flex-1 min-h-0">
-				<slot />
-			</div>
-		</div>
-	</body>
+          </script>
+          <form method="POST" action={Astro.url.pathname}>
+            <select
+              name="language"
+              class="select select-bordered"
+              onchange="this.form.submit()"
+            >
+              <option disabled selected="true">{ui[locale].nav.language}</option
+              >
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+            </select>
+          </form>
+        </div>
+      </header>
+      <div class="flex-1 min-h-0">
+        <slot />
+      </div>
+    </div>
+    <script>
+      // Écouter les mises à jour du profil
+      window.addEventListener("profile-updated", (event) => {
+        const customEvent = event as CustomEvent;
+        const user = customEvent.detail?.user;
+        if (!user) return;
+
+        const PB_URL = "http://127.0.0.1:8090";
+
+        // Mettre à jour tous les avatars dans le header (dropdown et navbar)
+        const avatarImages = document.querySelectorAll(
+          'img[alt="Avatar"], img[src*="/api/files/"]'
+        );
+
+        avatarImages.forEach((img) => {
+          if (user.avatar && img instanceof HTMLImageElement) {
+            // Mettre à jour avec la nouvelle photo
+            const newUrl = `${PB_URL}/api/files/${user.collectionId}/${user.id}/${user.avatar}?thumb=32x32&t=${Date.now()}`;
+            img.src = newUrl;
+          }
+        });
+
+        // Mettre à jour les placeholders d'initiales
+        const avatarPlaceholders = document.querySelectorAll(
+          '[id*="avatar-placeholder"]'
+        );
+
+        avatarPlaceholders.forEach((placeholder) => {
+          const initial = (user.name || user.username || user.email || "U")
+            .slice(0, 1)
+            .toUpperCase();
+          placeholder.textContent = initial;
+        });
+
+        console.log("Header avatars updated");
+      });
+    </script>
+  </body>
 </html>

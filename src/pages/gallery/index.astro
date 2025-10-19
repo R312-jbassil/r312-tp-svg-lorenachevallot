@@ -6,199 +6,172 @@ import { Collections } from "../../utils/pocketbase-types";
 const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
 const user = Astro.locals.user;
 
-if (Astro.request.method === "POST") {
-    try {
-        const formData = await Astro.request.formData();
-        const action = formData.get("action") as string;
-        const svgId = formData.get("svgId") as string;
-
-        if (action === "delete" && svgId) {
-            await pb.collection(Collections.NouvelleCollectionTp).delete(svgId);
-            return Astro.redirect("/gallery");
-        }
-    } catch (error) {
-        console.error("Error deleting SVG:", error);
-    }
-}
-
 const svgList: any[] = await pb
-    .collection(Collections.NouvelleCollectionTp)
-    .getFullList({
-        sort: "-created",
-        filter: `user = "${user.id}"`,
-    });
+  .collection(Collections.NouvelleCollectionTp)
+  .getFullList({
+    sort: "-created",
+    filter: `user = "${user.id}"`,
+  });
 ---
 
 <Layout>
-    <div class="max-w-6xl mx-auto p-6">
-        <div class="mb-8">
-            <h1 class="text-4xl font-bold mb-2">{ui[locale].gallery.title}</h1>
-            <p class="text-base-content/70">
-                Découvrez tous vos SVG sauvegardés
-            </p>
-        </div>
-
-        <div class="divider"></div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {
-                svgList.map((svg) => (
-                    <div class="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow">
-                        <div class="card-body">
-                            <h2 class="card-title">
-                                {svg.name || "SVG sans nom"}
-                            </h2>
-
-                            <div class="bg-white rounded-lg p-4 h-48 flex items-center justify-center border overflow-hidden">
-                                <div
-                                    set:html={svg.code_svg}
-                                    class="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:object-contain"
-                                />
-                            </div>
-
-                            <div class="text-sm text-base-content/70">
-                                <p>
-                                    Créé le :{" "}
-                                    {new Date(svg.created).toLocaleDateString(
-                                        "fr-FR",
-                                    )}
-                                </p>
-                                {svg.chat_history && (
-                                    <p>
-                                        Messages :{" "}
-                                        {Array.isArray(svg.chat_history)
-                                            ? svg.chat_history.length
-                                            : JSON.parse(
-                                                  svg.chat_history || "[]",
-                                              ).length}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div class="card-actions justify-end mt-4 gap-2">
-                                <a
-                                    href={`/gallery/${svg.id}`}
-                                    class="btn btn-primary btn-sm"
-                                >
-                                    Voir détails
-                                </a>
-                                <button
-                                    class="btn btn-secondary btn-sm"
-                                    onclick={`navigator.clipboard.writeText(\`${svg.code_svg}\`); alert('SVG copié!')`}
-                                >
-                                    Copier SVG
-                                </button>
-                                <button
-                                    class="btn btn-error btn-sm"
-                                    onclick={`deleteSVG('${svg.id}', '${svg.name || "SVG sans nom"}')`}
-                                >
-                                    🗑️ Supprimer
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ))
-            }
-        </div>
-
-        {
-            svgList.length === 0 && (
-                <div class="text-center py-12">
-                    <div class="text-6xl mb-4">🎨</div>
-                    <h3 class="text-2xl font-bold mb-2">Aucun SVG trouvé</h3>
-                    <p class="text-base-content/70 mb-4">
-                        Commencez par créer votre premier SVG
-                    </p>
-                    <a href="/generate" class="btn btn-primary">
-                        Créer un SVG
-                    </a>
-                </div>
-            )
-        }
-
-        <div class="divider mt-12"></div>
-
-        <div class="stats shadow w-full">
-            <div class="stat">
-                <div class="stat-figure text-primary">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        class="inline-block w-8 h-8 stroke-current"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                        ></path>
-                    </svg>
-                </div>
-                <div class="stat-title">Total SVG</div>
-                <div class="stat-value text-primary">{svgList.length}</div>
-                <div class="stat-desc">SVG dans votre collection</div>
-            </div>
-
-            <div class="stat">
-                <div class="stat-figure text-secondary">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        class="inline-block w-8 h-8 stroke-current"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
-                </div>
-                <div class="stat-title">Récent</div>
-                <div class="stat-value text-secondary">
-                    {
-                        svgList.length > 0
-                            ? new Date(svgList[0].created).toLocaleDateString(
-                                  "fr-FR",
-                              )
-                            : "Aucun"
-                    }
-                </div>
-                <div class="stat-desc">Dernier SVG créé</div>
-            </div>
-        </div>
+  <div class="max-w-6xl mx-auto p-6">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold mb-2">{ui[locale].gallery.title}</h1>
+      <p class="text-base-content/70">Découvrez tous vos SVG sauvegardés</p>
     </div>
+
+    <div class="divider"></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {
+        svgList.map((svg) => (
+          <div class="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+              <h2 class="card-title">{svg.name || "SVG sans nom"}</h2>
+
+              <div class="bg-white rounded-lg p-4 h-48 flex items-center justify-center border overflow-hidden">
+                <div
+                  set:html={svg.code_svg}
+                  class="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:object-contain"
+                />
+              </div>
+
+              <div class="text-sm text-base-content/70">
+                <p>
+                  Créé le : {new Date(svg.created).toLocaleDateString("fr-FR")}
+                </p>
+                {svg.chat_history && (
+                  <p>
+                    Messages :{" "}
+                    {Array.isArray(svg.chat_history)
+                      ? svg.chat_history.length
+                      : JSON.parse(svg.chat_history || "[]").length}
+                  </p>
+                )}
+              </div>
+
+              <div class="card-actions justify-end mt-4 gap-2">
+                <a href={`/gallery/${svg.id}`} class="btn btn-primary btn-sm">
+                  Voir détails
+                </a>
+                <button
+                  class="btn btn-secondary btn-sm"
+                  onclick={`navigator.clipboard.writeText(\`${svg.code_svg}\`); alert('SVG copié!')`}
+                >
+                  Copier SVG
+                </button>
+                <button
+                  class="btn btn-error btn-sm"
+                  onclick={`deleteSVG('${svg.id}', '${svg.name || "SVG sans nom"}')`}
+                >
+                  🗑️ Supprimer
+                </button>
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    {
+      svgList.length === 0 && (
+        <div class="text-center py-12">
+          <div class="text-6xl mb-4">🎨</div>
+          <h3 class="text-2xl font-bold mb-2">Aucun SVG trouvé</h3>
+          <p class="text-base-content/70 mb-4">
+            Commencez par créer votre premier SVG
+          </p>
+          <a href="/generate" class="btn btn-primary">
+            Créer un SVG
+          </a>
+        </div>
+      )
+    }
+
+    <div class="divider mt-12"></div>
+
+    <div class="stats shadow w-full">
+      <div class="stat">
+        <div class="stat-figure text-primary">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            class="inline-block w-8 h-8 stroke-current"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            ></path>
+          </svg>
+        </div>
+        <div class="stat-title">Total SVG</div>
+        <div class="stat-value text-primary">{svgList.length}</div>
+        <div class="stat-desc">SVG dans votre collection</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-figure text-secondary">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            class="inline-block w-8 h-8 stroke-current"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+        <div class="stat-title">Récent</div>
+        <div class="stat-value text-secondary">
+          {
+            svgList.length > 0
+              ? new Date(svgList[0].created).toLocaleDateString("fr-FR")
+              : "Aucun"
+          }
+        </div>
+        <div class="stat-desc">Dernier SVG créé</div>
+      </div>
+    </div>
+  </div>
 </Layout>
 
 <script>
-    //@ts-nocheck
-    function deleteSVG(svgId, svgName) {
-        const confirmed = confirm(
-            `Êtes-vous sûr de vouloir supprimer "${svgName}" ?\n\nCette action est irréversible.`,
-        );
+  //@ts-nocheck
+  async function deleteSVG(svgId, svgName) {
+    const confirmed = confirm(
+      `Êtes-vous sûr de vouloir supprimer "${svgName}" ?\n\nCette action est irréversible.`
+    );
 
-        if (confirmed) {
-            const form = document.createElement("form");
-            form.method = "POST";
-            form.style.display = "none";
+    if (confirmed) {
+      try {
+        const response = await fetch("/api/deleteSVG", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ svgId }),
+        });
 
-            const actionInput = document.createElement("input");
-            actionInput.type = "hidden";
-            actionInput.name = "action";
-            actionInput.value = "delete";
+        const result = await response.json();
 
-            const idInput = document.createElement("input");
-            idInput.type = "hidden";
-            idInput.name = "svgId";
-            idInput.value = svgId;
-
-            form.appendChild(actionInput);
-            form.appendChild(idInput);
-            document.body.appendChild(form);
-
-            form.submit();
+        if (result.success) {
+          // Recharger la page pour afficher la galerie mise à jour
+          window.location.reload();
+        } else {
+          alert("Erreur lors de la suppression : " + result.message);
         }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Erreur lors de la suppression du SVG");
+      }
     }
+  }
 
-    window.deleteSVG = deleteSVG;
+  window.deleteSVG = deleteSVG;
 </script>

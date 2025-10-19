@@ -1,0 +1,55 @@
+---
+interface Props {
+  user: any;
+  size?: "sm" | "md" | "lg" | "xl";
+  class?: string;
+}
+
+const { user, size = "md", class: className = "" } = Astro.props;
+
+const PB_URL = "http://127.0.0.1:8090";
+
+// Tailles en pixels pour les thumbnails et les CSS
+const sizeMap = {
+  sm: { thumb: "32x32", css: "w-8 h-8", text: "text-sm" },
+  md: { thumb: "48x48", css: "w-12 h-12", text: "text-base" },
+  lg: { thumb: "96x96", css: "w-20 h-20", text: "text-2xl" },
+  xl: { thumb: "160x160", css: "w-24 h-24", text: "text-3xl" },
+};
+
+const sizeConfig = sizeMap[size];
+
+const avatarUrl = user?.avatar
+  ? `${PB_URL}/api/files/${user.collectionId}/${user.id}/${user.avatar}?thumb=${sizeConfig.thumb}`
+  : null;
+
+// Obtenir la première lettre du nom, username ou email
+const getInitial = () => {
+  if (user?.name) return user.name.charAt(0).toUpperCase();
+  if (user?.username) return user.username.charAt(0).toUpperCase();
+  if (user?.email) return user.email.charAt(0).toUpperCase();
+  return "U";
+};
+
+const initial = getInitial();
+---
+
+<div class={`avatar ${className}`}>
+  <div class={`${sizeConfig.css} rounded-full overflow-hidden`}>
+    {
+      avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={user?.name || user?.username || "Avatar"}
+          class="w-full h-full object-cover"
+        />
+      ) : (
+        <div
+          class={`w-full h-full bg-primary text-primary-content flex items-center justify-center font-semibold ${sizeConfig.text}`}
+        >
+          {initial}
+        </div>
+      )
+    }
+  </div>
+</div>

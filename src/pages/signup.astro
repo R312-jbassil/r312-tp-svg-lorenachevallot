@@ -5,155 +5,155 @@ import { ui } from "../i18n/ui.js";
 const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
 
 if ("user" in Astro.locals && Astro.locals.user) {
-    // Si l'utilisateur est déjà connecté, on le redirige vers la page d'accueil
-    return Astro.redirect("/");
+  // Si l'utilisateur est déjà connecté, on le redirige vers la page d'accueil
+  return Astro.redirect("/");
 }
 ---
 
 <Layout title={ui[locale].signup.title}>
-    <div
-        class="flex flex-col h-full items-center justify-center glass bg-primary"
-    >
-        <div class="card w-full max-w-md shadow-xl bg-base-100">
-            <div class="card-body">
-                <h1 class="card-title text-3xl mb-4 justify-center">
-                    {ui[locale].signup.title}
-                </h1>
-                <p class="text-center text-base-content/70 mb-4">
-                    {ui[locale].signup.description}
-                </p>
+  <div
+    class="flex flex-col h-full items-center justify-center glass bg-primary"
+  >
+    <div class="card w-full max-w-md shadow-xl bg-base-100">
+      <div class="card-body">
+        <h1 class="card-title text-3xl mb-4 justify-center">
+          {ui[locale].signup.title}
+        </h1>
+        <p class="text-center text-base-content/70 mb-4">
+          {ui[locale].signup.description}
+        </p>
 
-                <!-- Formulaire d'inscription -->
-                <form id="signup-form" class="flex flex-col gap-4">
-                    <input
-                        type="text"
-                        name="username"
-                        placeholder={ui[locale].signup.username}
-                        required
-                        class="input input-bordered"
-                        minlength="3"
-                    />
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder={ui[locale].signup.email}
-                        required
-                        class="input input-bordered"
-                    />
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder={ui[locale].signup.password}
-                        required
-                        class="input input-bordered"
-                        minlength="8"
-                    />
-                    <input
-                        type="password"
-                        name="passwordConfirm"
-                        placeholder={ui[locale].signup.confirmPassword}
-                        required
-                        class="input input-bordered"
-                        minlength="8"
-                    />
-                    <button type="submit" class="btn btn-primary w-full">
-                        {ui[locale].signup.signupButton}
-                    </button>
-                </form>
+        <!-- Formulaire d'inscription -->
+        <form id="signup-form" class="flex flex-col gap-4">
+          <input
+            type="text"
+            name="username"
+            placeholder={ui[locale].signup.username}
+            required
+            class="input input-bordered"
+            minlength="3"
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder={ui[locale].signup.email}
+            required
+            class="input input-bordered"
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder={ui[locale].signup.password}
+            required
+            class="input input-bordered"
+            minlength="8"
+          />
+          <input
+            type="password"
+            name="passwordConfirm"
+            placeholder={ui[locale].signup.confirmPassword}
+            required
+            class="input input-bordered"
+            minlength="8"
+          />
+          <button type="submit" class="btn btn-primary w-full">
+            {ui[locale].signup.signupButton}
+          </button>
+        </form>
 
-                <!-- Zone d'affichage du statut -->
-                <p id="status" class="mt-4 text-center"></p>
+        <!-- Zone d'affichage du statut -->
+        <p id="status" class="mt-4 text-center"></p>
 
-                <!-- Lien vers la page de connexion -->
-                <div class="divider">{ui[locale].signup.or}</div>
-                <div class="text-center">
-                    <p class="text-base-content/70">
-                        {ui[locale].signup.alreadyHaveAccount}
-                        <a href="/login" class="link link-primary">
-                            {ui[locale].signup.loginLink}
-                        </a>
-                    </p>
-                </div>
-            </div>
+        <!-- Lien vers la page de connexion -->
+        <div class="divider">{ui[locale].signup.or}</div>
+        <div class="text-center">
+          <p class="text-base-content/70">
+            {ui[locale].signup.alreadyHaveAccount}
+            <a href="/login" class="link link-primary">
+              {ui[locale].signup.loginLink}
+            </a>
+          </p>
         </div>
+      </div>
     </div>
+  </div>
 </Layout>
 
 <script>
-    //@ts-nocheck
-    const form = document.getElementById("signup-form");
-    const status = document.getElementById("status");
+  //@ts-nocheck
+  const form = document.getElementById("signup-form");
+  const status = document.getElementById("status");
 
-    // Gestion de la soumission du formulaire
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const submitButton = form.querySelector('button[type="submit"]');
+  // Gestion de la soumission du formulaire
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]');
 
-        // Vérification que les mots de passe correspondent
-        const password = formData.get("password");
-        const passwordConfirm = formData.get("passwordConfirm");
+    // Vérification que les mots de passe correspondent
+    const password = formData.get("password");
+    const passwordConfirm = formData.get("passwordConfirm");
 
-        if (password !== passwordConfirm) {
-            status.textContent = "❌ Les mots de passe ne correspondent pas";
-            status.className = "mt-4 text-center text-error";
-            return;
+    if (password !== passwordConfirm) {
+      status.textContent = "❌ Les mots de passe ne correspondent pas";
+      status.className = "mt-4 text-center text-error";
+      return;
+    }
+
+    // Désactiver le bouton et afficher un indicateur de chargement
+    submitButton.disabled = true;
+    submitButton.innerHTML =
+      '<span class="loading loading-spinner"></span> Création du compte...';
+    status.textContent = "🔄 Création de votre compte en cours...";
+    status.className = "mt-4 text-center text-info";
+
+    // Envoi des informations au serveur via l'API /api/signup
+    try {
+      const res = await fetch("/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: formData.get("username"),
+          email: formData.get("email"),
+          password: formData.get("password"),
+          passwordConfirm: formData.get("passwordConfirm"),
+        }),
+        credentials: "include", // Permet d'inclure les cookies dans la requête
+      });
+
+      const resData = await res.json();
+
+      // Traitement de la réponse
+      if (res.ok) {
+        status.textContent =
+          "✅ Inscription réussie ! Connexion automatique...";
+        status.className = "mt-4 text-center text-success";
+
+        // Sauvegarde des infos utilisateur dans le localStorage
+        if (resData.user) {
+          localStorage.setItem("user", JSON.stringify(resData.user));
         }
 
-        // Désactiver le bouton et afficher un indicateur de chargement
-        submitButton.disabled = true;
-        submitButton.innerHTML =
-            '<span class="loading loading-spinner"></span> Création du compte...';
-        status.textContent = "🔄 Création de votre compte en cours...";
-        status.className = "mt-4 text-center text-info";
+        // Redirection immédiate vers la page d'accueil
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      } else {
+        status.textContent =
+          "❌ " + (resData.message || "Erreur lors de l'inscription");
+        status.className = "mt-4 text-center text-error";
 
-        // Envoi des informations au serveur via l'API /api/signup
-        try {
-            const res = await fetch("/api/signup", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    username: formData.get("username"),
-                    email: formData.get("email"),
-                    password: formData.get("password"),
-                    passwordConfirm: formData.get("passwordConfirm"),
-                }),
-                credentials: "include", // Permet d'inclure les cookies dans la requête
-            });
+        // Réactiver le bouton en cas d'erreur
+        submitButton.disabled = false;
+        submitButton.innerHTML = "S'inscrire";
+      }
+    } catch (error) {
+      status.textContent = "❌ Erreur de connexion au serveur";
+      status.className = "mt-4 text-center text-error";
 
-            const resData = await res.json();
-
-            // Traitement de la réponse
-            if (res.ok) {
-                status.textContent =
-                    "✅ Inscription réussie ! Connexion automatique...";
-                status.className = "mt-4 text-center text-success";
-
-                // Sauvegarde des infos utilisateur dans le localStorage
-                if (resData.user) {
-                    localStorage.setItem("user", JSON.stringify(resData.user));
-                }
-
-                // Redirection immédiate vers la galerie pour voir son compte
-                setTimeout(() => {
-                    window.location.href = "/gallery";
-                }, 1000);
-            } else {
-                status.textContent =
-                    "❌ " + (resData.message || "Erreur lors de l'inscription");
-                status.className = "mt-4 text-center text-error";
-
-                // Réactiver le bouton en cas d'erreur
-                submitButton.disabled = false;
-                submitButton.innerHTML = "S'inscrire";
-            }
-        } catch (error) {
-            status.textContent = "❌ Erreur de connexion au serveur";
-            status.className = "mt-4 text-center text-error";
-
-            // Réactiver le bouton en cas d'erreur
-            submitButton.disabled = false;
-            submitButton.innerHTML = "S'inscrire";
-        }
-    });
+      // Réactiver le bouton en cas d'erreur
+      submitButton.disabled = false;
+      submitButton.innerHTML = "S'inscrire";
+    }
+  });
 </script>

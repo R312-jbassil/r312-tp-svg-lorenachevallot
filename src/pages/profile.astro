@@ -27,7 +27,7 @@ const avatarUrl = user?.avatar
                   />
                 ) : (
                   <div
-                    class="w-full h-full bg-neutral text-neutral-content flex items-center justify-center text-2xl"
+                    class="w-full h-full bg-primary text-primary-content flex items-center justify-center text-2xl font-semibold"
                     id="avatar-placeholder"
                   >
                     {(user?.name ?? user?.username ?? user?.email ?? "U")
@@ -91,18 +91,6 @@ const avatarUrl = user?.avatar
                   </div>
                   <div class="form-control mb-0">
                     <label class="label pb-1 pt-0">
-                      <span class="label-text">Identifiant (login)</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="username"
-                      class="input input-bordered w-full"
-                      value={user.username ?? ""}
-                      placeholder="username"
-                    />
-                  </div>
-                  <div class="form-control mb-0">
-                    <label class="label pb-1 pt-0">
                       <span class="label-text">Email</span>
                     </label>
                     <input
@@ -115,42 +103,43 @@ const avatarUrl = user?.avatar
                   </div>
                 </div>
 
-                <div
-                  id="panel-security"
-                  class="grid grid-cols-1 gap-6 py-4 hidden"
-                >
-                  <div class="form-control">
-                    <label class="label">
-                      <span class="label-text">Mot de passe actuel</span>
-                    </label>
-                    <input
-                      type="password"
-                      name="currentPassword"
-                      class="input input-bordered w-full"
-                      autocomplete="current-password"
-                    />
-                  </div>
-                  <div class="form-control">
-                    <label class="label">
-                      <span class="label-text">Nouveau mot de passe</span>
-                    </label>
-                    <input
-                      type="password"
-                      name="password"
-                      class="input input-bordered w-full"
-                      autocomplete="new-password"
-                    />
-                  </div>
-                  <div class="form-control">
-                    <label class="label">
-                      <span class="label-text">Confirmer le mot de passe</span>
-                    </label>
-                    <input
-                      type="password"
-                      name="passwordConfirm"
-                      class="input input-bordered w-full"
-                      autocomplete="new-password"
-                    />
+                <div id="panel-security" class="hidden">
+                  <div class="grid grid-cols-1 gap-6 py-4">
+                    <div class="form-control">
+                      <label class="label">
+                        <span class="label-text">Mot de passe actuel</span>
+                      </label>
+                      <input
+                        type="password"
+                        name="currentPassword"
+                        class="input input-bordered w-full"
+                        autocomplete="current-password"
+                      />
+                    </div>
+                    <div class="form-control">
+                      <label class="label">
+                        <span class="label-text">Nouveau mot de passe</span>
+                      </label>
+                      <input
+                        type="password"
+                        name="password"
+                        class="input input-bordered w-full"
+                        autocomplete="new-password"
+                      />
+                    </div>
+                    <div class="form-control">
+                      <label class="label">
+                        <span class="label-text">
+                          Confirmer le mot de passe
+                        </span>
+                      </label>
+                      <input
+                        type="password"
+                        name="passwordConfirm"
+                        class="input input-bordered w-full"
+                        autocomplete="new-password"
+                      />
+                    </div>
                   </div>
                 </div>
               </form>
