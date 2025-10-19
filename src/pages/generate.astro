@@ -2,26 +2,52 @@
 import Layout from "../layouts/Layout.astro";
 import { ui } from "../i18n/ui.js";
 const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
-// @ts-ignore
-const user = Astro.locals.user;
+const user = Astro.locals?.user ?? null;
+
+const PB_URL = "http://127.0.0.1:8090";
+const userAvatarUrl = user?.avatar
+  ? `${PB_URL}/api/files/${user.collectionId}/${user.id}/${user.avatar}?thumb=100x100`
+  : "/avatars/user-default.svg";
 ---
 
 <Layout title={ui[locale].generator.title}>
-  <div class="h-[100dvh] flex flex-col gap-4 p-4 md:p-6 overflow-hidden">
+  <div class="h-full flex flex-col gap-2 p-2 md:p-3 overflow-hidden">
     <!-- Partie haute : SVG + mockup -->
-    <div class="grid gap-4 lg:grid-cols-2 flex-1 min-h-0">
+    <div class="grid gap-2 lg:grid-cols-2 flex-1 min-h-0">
       <!-- Chat unique (DaisyUI) -->
-      <div class="card border-2 border-violet-500 rounded-box h-full min-h-0 shadow-sm">
+      <div
+        class="card border-2 border-violet-500 rounded-box h-full min-h-0 shadow-sm"
+      >
         <div class="card-body p-0 h-full flex flex-col min-h-0">
-          <div class="px-4 py-3 border-b border-violet-500 flex items-center justify-between">
+          <div
+            class="px-3 py-2 border-b border-violet-500 flex items-center justify-between"
+          >
             <div class="flex items-center gap-2">
-              <div class="avatar"><div class="w-6 rounded"><img alt="bot" src="https://img.daisyui.com/images/profile/demo/kenobee@192.webp" /></div></div>
+              <div class="avatar placeholder">
+                <div
+                  class="w-6 rounded bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                  </svg>
+                </div>
+              </div>
               <h2 class="font-semibold">Assistant</h2>
             </div>
-            <div class="badge badge-success badge-outline">Online</div>
+            <div class="badge badge-success badge-outline badge-sm">Online</div>
           </div>
-          <div class="p-4 h-full flex flex-col gap-3 min-h-0">
-            <div id="chat-log" class="grow overflow-auto space-y-3 pr-1"></div>
+          <div class="p-3 h-full flex flex-col gap-2 min-h-0">
+            <div id="chat-log" class="grow overflow-auto space-y-2 pr-1"></div>
             <!-- Stockage invisible du dernier code pour la sauvegarde -->
             <pre id="svg-output" class="hidden"></pre>
           </div>
@@ -29,18 +55,24 @@ const user = Astro.locals.user;
       </div>
 
       <!-- Prévisualisation (même taille que le chat) -->
-      <div class="card border-2 border-violet-500 rounded-box h-full min-h-0 shadow-sm">
+      <div
+        class="card border-2 border-violet-500 rounded-box h-full min-h-0 shadow-sm"
+      >
         <div class="card-body p-0 h-full flex flex-col min-h-0">
-          <div class="px-4 py-3 border-b border-violet-500 flex items-center justify-between">
+          <div
+            class="px-3 py-2 border-b border-violet-500 flex items-center justify-between"
+          >
             <h2 class="font-semibold">Prévisualisation</h2>
-            <div class="badge badge-ghost">SVG</div>
+            <div class="badge badge-ghost badge-sm">SVG</div>
           </div>
-          <div class="p-4 h-full flex min-h-0">
+          <div class="p-3 h-full flex min-h-0">
             <div
               id="preview-container"
               class="flex-1 h-full w-full overflow-auto flex items-center justify-center bg-base-200 rounded-box"
             >
-              <p class="text-base-content/70 text-center">{ui[locale].generator.contentPlaceholder}</p>
+              <p class="text-base-content/70 text-center">
+                {ui[locale].generator.contentPlaceholder}
+              </p>
             </div>
           </div>
         </div>
@@ -48,8 +80,10 @@ const user = Astro.locals.user;
     </div>
 
     <!-- Barre de commande plein largeur -->
-    <div class="card border border-base-300 shadow-sm sticky bottom-0 z-20 backdrop-blur bg-base-100/80 shrink-0">
-      <div class="card-body p-3">
+    <div
+      class="card border border-base-300 shadow-sm sticky bottom-0 z-20 backdrop-blur bg-base-100/80 shrink-0"
+    >
+      <div class="card-body p-2">
         <div class="join w-full items-center">
           <input
             id="user-prompt"
@@ -57,25 +91,37 @@ const user = Astro.locals.user;
             placeholder={ui[locale].generator.promptLabel}
             class="input input-bordered join-item w-full"
           />
-          <button id="generate-button" class="btn btn-primary join-item" aria-label="Generate">
+          <button
+            id="generate-button"
+            class="btn btn-primary join-item"
+            aria-label="Generate"
+          >
             {ui[locale].generator.generateButton}
           </button>
-          <button id="edit-button" class="btn btn-secondary join-item ml-2" aria-label="Edit">
+          <button
+            id="edit-button"
+            class="btn btn-secondary join-item ml-2"
+            aria-label="Edit"
+          >
             {ui[locale].generator.editButton}
           </button>
-          <button id="save-button" class="btn btn-accent ml-2" aria-label="Save">Sauvegarder</button>
-          <a href="/gallery" class="btn btn-outline ml-2" aria-label="View Gallery">
+          <button id="save-button" class="btn btn-accent ml-2" aria-label="Save"
+            >Sauvegarder</button
+          >
+          <a
+            href="/gallery"
+            class="btn btn-outline ml-2"
+            aria-label="View Gallery"
+          >
             {ui[locale].generator.viewButton}
           </a>
         </div>
       </div>
     </div>
-
-
   </div>
 </Layout>
 
-<script>
+<script define:vars={{ userAvatarUrl }}>
   //@ts-nocheck
   let promptList = [];
 
@@ -88,7 +134,13 @@ const user = Astro.locals.user;
   }
 
   function escapeHtml(text) {
-    const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
+    const map = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
+    };
     return String(text).replace(/[&<>"']/g, (m) => map[m]);
   }
 
@@ -98,18 +150,17 @@ const user = Astro.locals.user;
     const isUser = role === "user";
     const align = isUser ? "chat-end" : "chat-start";
     const name = isUser ? "You" : "SVG Bot";
-    const avatar = isUser
-      ? "https://img.daisyui.com/images/profile/demo/anakeen@192.webp"
-      : "https://img.daisyui.com/images/profile/demo/kenobee@192.webp";
+    const botAvatarSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full p-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`;
     const bubbleText = escapeHtml(content);
     const wrapper = document.createElement("div");
     wrapper.className = `chat ${align}`;
-    const bubbleTone = isUser ? 'chat-bubble-primary' : 'chat-bubble-secondary';
+    const bubbleTone = isUser ? "chat-bubble-primary" : "chat-bubble-secondary";
+    const avatarHTML = isUser
+      ? `<div class="w-10 rounded-full"><img alt="avatar" src="${userAvatarUrl}" /></div>`
+      : `<div class="w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center">${botAvatarSVG}</div>`;
     wrapper.innerHTML = `
       <div class="chat-image avatar">
-        <div class="w-10 rounded-full">
-          <img alt="avatar" src="${avatar}" />
-        </div>
+        ${avatarHTML}
       </div>
       <div class="chat-header">
         ${name}
@@ -118,7 +169,10 @@ const user = Astro.locals.user;
       <div class="chat-bubble ${bubbleTone}">${bubbleText}</div>
     `;
     chatLog.appendChild(wrapper);
-    chatLog.parentElement?.scrollTo({ top: chatLog.parentElement.scrollHeight, behavior: "smooth" });
+    chatLog.parentElement?.scrollTo({
+      top: chatLog.parentElement.scrollHeight,
+      behavior: "smooth",
+    });
   }
 
   function addLoadingBubble() {
@@ -126,17 +180,21 @@ const user = Astro.locals.user;
     if (!chatLog) return null;
     const wrapper = document.createElement("div");
     wrapper.className = "chat chat-start";
+    const botAvatarSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full p-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`;
     wrapper.innerHTML = `
       <div class="chat-image avatar">
-        <div class="w-10 rounded-full">
-          <img alt="avatar" src="https://img.daisyui.com/images/profile/demo/kenobee@192.webp" />
+        <div class="w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center">
+          ${botAvatarSVG}
         </div>
       </div>
       <div class="chat-header">SVG Bot</div>
       <div class="chat-bubble"><span class="loading loading-dots"></span></div>
     `;
     chatLog.appendChild(wrapper);
-    chatLog.parentElement?.scrollTo({ top: chatLog.parentElement.scrollHeight, behavior: "smooth" });
+    chatLog.parentElement?.scrollTo({
+      top: chatLog.parentElement.scrollHeight,
+      behavior: "smooth",
+    });
     return wrapper;
   }
 
@@ -145,10 +203,11 @@ const user = Astro.locals.user;
     if (!chatLog) return;
     const wrapper = document.createElement("div");
     wrapper.className = "chat chat-start";
+    const botAvatarSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full p-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`;
     wrapper.innerHTML = `
       <div class="chat-image avatar">
-        <div class="w-10 rounded-full">
-          <img alt="avatar" src="https://img.daisyui.com/images/profile/demo/kenobee@192.webp" />
+        <div class="w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center">
+          ${botAvatarSVG}
         </div>
       </div>
       <div class="chat-header">
@@ -160,7 +219,10 @@ const user = Astro.locals.user;
       </div>
     `;
     chatLog.appendChild(wrapper);
-    chatLog.parentElement?.scrollTo({ top: chatLog.parentElement.scrollHeight, behavior: "smooth" });
+    chatLog.parentElement?.scrollTo({
+      top: chatLog.parentElement.scrollHeight,
+      behavior: "smooth",
+    });
   }
 
   function setPreview(svgMarkup) {
@@ -210,7 +272,10 @@ const user = Astro.locals.user;
     aiResponse = await generateSVG(promptList);
     if (!aiResponse) {
       if (loading) loading.remove();
-      appendChatBubble("assistant", "Erreur: génération indisponible. Connectez-vous ou réessayez.");
+      appendChatBubble(
+        "assistant",
+        "Erreur: génération indisponible. Connectez-vous ou réessayez.",
+      );
     } else {
       promptList.push({ role: "assistant", content: aiResponse });
       if (svgOutput) svgOutput.textContent = aiResponse;
@@ -246,7 +311,10 @@ const user = Astro.locals.user;
     aiResponse = await generateSVG(promptList);
     if (!aiResponse) {
       if (loading) loading.remove();
-      appendChatBubble("assistant", "Erreur: génération indisponible. Connectez-vous ou réessayez.");
+      appendChatBubble(
+        "assistant",
+        "Erreur: génération indisponible. Connectez-vous ou réessayez.",
+      );
     } else {
       promptList.push({ role: "assistant", content: aiResponse });
       if (svgOutput) svgOutput.textContent = aiResponse;
@@ -298,4 +366,3 @@ const user = Astro.locals.user;
     });
   }
 </script>
-

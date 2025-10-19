@@ -3,20 +3,100 @@ import Layout from "../layouts/Layout.astro";
 import { ui } from "../i18n/ui.js";
 // @ts-ignore
 const user = Astro.locals.user;
+const PB_URL = 'http://127.0.0.1:8090';
+const avatarUrl = (user?.avatar)
+  ? `${PB_URL}/api/files/${user.collectionId}/${user.id}/${user.avatar}?thumb=96x96`
+  : null;
 
 const locale = (Astro.locals?.lang as "en" | "fr") ?? "en";
 ---
 
 <Layout title={ui[locale].index.title}>
-  <div
-    class="flex flex-col h-full items-center justify-center glass bg-primary"
-  >
-    <h1 class="text-4xl font-bold mb-4 text-primary-content">
-      {ui[locale].index.title}
-    </h1>
-    <p class="mb-6 text-lg text-primary-content">
-      {ui[locale].index.description}
-    </p>
-    <a href="/generate" class="btn btn-secondary">{ui[locale].index.button}</a>
-  </div>
+  <section class="h-full">
+    {user ? (
+      <div class="hero min-h-full bg-base-200">
+        <div class="hero-content w-full max-w-6xl flex-col items-stretch justify-start gap-10 py-4">
+          <div class="flex items-center gap-6">
+            <div class="avatar">
+              <div class="w-20 h-20 rounded-full overflow-hidden ring ring-primary/40 ring-offset-2 ring-offset-base-200">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="avatar" class="w-full h-full object-cover" />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-full h-full p-4" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5a8.25 8.25 0 1115 0v0A12.317 12.317 0 0012 15.75a12.317 12.317 0 00-7.5 3.75z" /></svg>
+                )}
+              </div>
+            </div>
+            <div>
+              <h1 class="text-4xl font-bold">Bienvenue{user?.name ? `, ${user.name}` : ''} !</h1>
+              <p class="opacity-70">Choisissez une destination pour commencer.</p>
+            </div>
+          </div>
+
+          <div id="home-cards" class="w-full">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full mt-2">
+            <a href="/generate" data-key="generator" class="group home-card is-active card bg-base-100 hover:shadow-2xl transition-shadow h-full">
+              <div class="card-body h-full">
+                <div class="flex items-center gap-3">
+                  <div class="p-2 rounded-lg bg-base-300/40 text-base-content/70 transition-colors group-hover:bg-primary/10 group-hover:text-primary group-[.is-active]:bg-primary/10 group-[.is-active]:text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="M3 5a2 2 0 012-2h5l2 2h7a2 2 0 012 2v3H3V5zm0 6h18v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8z"/></svg>
+                  </div>
+                  <span class="badge bg-base-300 text-base-content/80 transition-colors group-hover:bg-primary group-hover:text-primary-content group-[.is-active]:bg-primary group-[.is-active]:text-primary-content">Outil</span>
+                </div>
+                <h2 class="card-title mt-2">{ui[locale].nav.generator}</h2>
+                <p class="opacity-70">Générez des SVG à partir de vos prompts et ajustez le résultat.</p>
+                <div class="card-actions justify-end mt-auto">
+                  <button class="btn bg-base-300 text-base-content/80 border-none transition-colors group-hover:bg-primary group-hover:text-primary-content group-[.is-active]:bg-primary group-[.is-active]:text-primary-content">Ouvrir le générateur</button>
+                </div>
+              </div>
+            </a>
+
+            <a href="/gallery" data-key="gallery" class="group home-card card bg-base-100 hover:shadow-2xl transition-shadow h-full">
+              <div class="card-body h-full">
+                <div class="flex items-center gap-3">
+                  <div class="p-2 rounded-lg bg-base-300/40 text-base-content/70 transition-colors group-hover:bg-primary/10 group-hover:text-primary group-[.is-active]:bg-primary/10 group-[.is-active]:text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="M21 19V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14h18zM5 3h14v9l-3-3-4 4-2-2-5 5V3z"/></svg>
+                  </div>
+                  <span class="badge bg-base-300 text-base-content/80 transition-colors group-hover:bg-primary group-hover:text-primary-content group-[.is-active]:bg-primary group-[.is-active]:text-primary-content">Exploration</span>
+                </div>
+                <h2 class="card-title mt-2">{ui[locale].nav.gallery}</h2>
+                <p class="opacity-70">Parcourez vos SVG enregistrés et consultez les détails.</p>
+                <div class="card-actions justify-end mt-auto">
+                  <button class="btn bg-base-300 text-base-content/80 border-none transition-colors group-hover:bg-primary group-hover:text-primary-content group-[.is-active]:bg-primary group-[.is-active]:text-primary-content">Voir la galerie</button>
+                </div>
+              </div>
+            </a>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <div class="hero min-h-full bg-primary">
+        <div class="hero-content text-center">
+          <div class="max-w-xl">
+            <h1 class="text-5xl font-bold text-primary-content">{ui[locale].index.title}</h1>
+            <p class="py-6 text-lg text-primary-content/90">{ui[locale].index.description}</p>
+            <a href="/generate" class="btn btn-secondary">{ui[locale].index.button}</a>
+          </div>
+        </div>
+      </div>
+    )}
+  </section>
 </Layout>
+
+<script>
+  // Active state switcher: default to generator, then highlight hovered card
+  document.addEventListener('DOMContentLoaded', () => {
+    const cards = Array.from(document.querySelectorAll('.home-card'));
+    const byKey = (k) => document.querySelector(`.home-card[data-key="${k}"]`);
+    const setActive = (el) => {
+      cards.forEach(c => c.classList.remove('is-active'));
+      if (el) el.classList.add('is-active');
+    };
+    setActive(byKey('generator'));
+    cards.forEach(c => {
+      c.addEventListener('mouseenter', () => setActive(c));
+      c.addEventListener('focus', () => setActive(c), true);
+    });
+  });
+  </script>

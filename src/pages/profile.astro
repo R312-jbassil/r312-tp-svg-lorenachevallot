@@ -1,60 +1,208 @@
 ---
 import Layout from "../layouts/Layout.astro";
 
-const user = (Astro.locals?.user) ?? null;
-const PB_URL = 'http://127.0.0.1:8090';
-const avatarUrl = (user?.avatar)
-  ? `${PB_URL}/api/files/${user.collectionId}/${user.id}/${user.avatar}?thumb=128x128`
+const user = Astro.locals?.user ?? null;
+const PB_URL = "http://127.0.0.1:8090";
+const avatarUrl = user?.avatar
+  ? `${PB_URL}/api/files/${user.collectionId}/${user.id}/${user.avatar}?thumb=160x160`
   : null;
 ---
 
 <Layout title="Profil">
-  <div class="flex items-center justify-center p-6">
-    <div class="card w-full max-w-xl bg-base-100 shadow-xl">
-      <div class="card-body gap-4">
-        <h2 class="card-title">Mon profil</h2>
-
-        {user ? (
-          <div class="flex items-start gap-4">
-            <div class="avatar">
-              {avatarUrl ? (
-                <div class="w-20 h-20 rounded-full overflow-hidden">
-                  <img src={avatarUrl} alt="avatar" class="w-full h-full object-cover" />
-                </div>
-              ) : (
-                <div class="bg-neutral text-neutral-content rounded-full w-16 h-16 flex items-center justify-center">
-                  <span class="text-xl">{(user.name ?? user.username ?? user.email ?? 'U').slice(0,1).toUpperCase()}</span>
-                </div>
-              )}
-            </div>
-            <div class="flex-1 grid grid-cols-1 gap-2">
-              <div>
-                <div class="text-sm opacity-60">Nom</div>
-                <div class="font-medium">{user.name ?? '-'}</div>
-              </div>
-              <div>
-                <div class="text-sm opacity-60">Email</div>
-                <div class="font-medium">{user.email ?? '-'}</div>
-              </div>
-              <div>
-                <div class="text-sm opacity-60">Identifiant</div>
-                <div class="font-medium">{user.username ?? user.id}</div>
+  <div class="h-full max-w-5xl mx-auto px-6 py-4 min-h-0">
+    <div class="card bg-base-100 shadow-xl h-full min-h-0">
+      <div class="card-body h-full flex flex-col gap-4 min-h-0">
+        <div class="flex items-center gap-6">
+          <div class="avatar cursor-pointer group" id="avatar-trigger">
+            <div
+              class="w-24 h-24 rounded-full ring ring-primary/40 ring-offset-base-100 ring-offset-2 overflow-hidden relative"
+            >
+              {
+                avatarUrl ? (
+                  <img
+                    id="avatar-img"
+                    src={avatarUrl}
+                    alt="Avatar"
+                    class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                  />
+                ) : (
+                  <div
+                    class="w-full h-full bg-neutral text-neutral-content flex items-center justify-center text-2xl"
+                    id="avatar-placeholder"
+                  >
+                    {(user?.name ?? user?.username ?? user?.email ?? "U")
+                      .slice(0, 1)
+                      .toUpperCase()}
+                  </div>
+                )
+              }
+              <div
+                class="absolute inset-0 bg-base-300/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-xs transition-opacity"
+              >
+                Changer l'avatar
               </div>
             </div>
           </div>
-        ) : (
-          <div class="alert alert-warning">
-            <span>Non connecté. Redirection…</span>
+          <div>
+            <h2 class="card-title m-0">Mon profil</h2>
+            <p class="text-base-content/70">
+              Gérez vos informations de compte.
+            </p>
           </div>
-        )}
-
-        <div class="card-actions justify-end mt-4">
-          <a class="btn" href="/">Accueil</a>
-          <form method="POST" action="/api/logout">
-            <button class="btn btn-error" type="submit">Se déconnecter</button>
-          </form>
         </div>
+
+        {
+          user ? (
+            <>
+              <div class="tabs tabs-boxed mt-2">
+                <button id="tab-info" class="tab tab-active">
+                  Informations
+                </button>
+                <button id="tab-security" class="tab">
+                  Sécurité
+                </button>
+              </div>
+
+              <form id="profile-form" class="flex-1 min-h-0 overflow-hidden">
+                <input
+                  type="file"
+                  id="avatar"
+                  name="avatar"
+                  class="hidden"
+                  accept="image/*"
+                />
+
+                <div
+                  id="panel-info"
+                  class="flex flex-col py-4 h-full"
+                  style="gap: 2rem;"
+                >
+                  <div class="form-control mb-0">
+                    <label class="label pb-1 pt-0">
+                      <span class="label-text">Nom</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      class="input input-bordered w-full"
+                      value={user.name ?? ""}
+                      placeholder="Votre nom"
+                    />
+                  </div>
+                  <div class="form-control mb-0">
+                    <label class="label pb-1 pt-0">
+                      <span class="label-text">Identifiant (login)</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="username"
+                      class="input input-bordered w-full"
+                      value={user.username ?? ""}
+                      placeholder="username"
+                    />
+                  </div>
+                  <div class="form-control mb-0">
+                    <label class="label pb-1 pt-0">
+                      <span class="label-text">Email</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      class="input input-bordered w-full"
+                      value={user.email ?? ""}
+                      placeholder="email@example.com"
+                    />
+                  </div>
+                </div>
+
+                <div
+                  id="panel-security"
+                  class="grid grid-cols-1 gap-6 py-4 hidden"
+                >
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">Mot de passe actuel</span>
+                    </label>
+                    <input
+                      type="password"
+                      name="currentPassword"
+                      class="input input-bordered w-full"
+                      autocomplete="current-password"
+                    />
+                  </div>
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">Nouveau mot de passe</span>
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      class="input input-bordered w-full"
+                      autocomplete="new-password"
+                    />
+                  </div>
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">Confirmer le mot de passe</span>
+                    </label>
+                    <input
+                      type="password"
+                      name="passwordConfirm"
+                      class="input input-bordered w-full"
+                      autocomplete="new-password"
+                    />
+                  </div>
+                </div>
+              </form>
+
+              <div class="mt-auto pt-2 flex items-center justify-between gap-4">
+                <form method="POST" action="/api/logout">
+                  <button class="btn btn-ghost" type="submit">
+                    Se déconnecter
+                  </button>
+                </form>
+                <p id="status" class="text-sm text-center flex-1" />
+                <div class="flex items-center gap-4">
+                  <button type="reset" form="profile-form" class="btn">
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    form="profile-form"
+                    class="btn btn-primary"
+                  >
+                    Enregistrer
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div class="flex flex-col items-center justify-center h-full gap-4">
+              <div class="alert alert-warning max-w-md">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="stroke-current shrink-0 h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                <span>Vous devez être connecté pour accéder à cette page.</span>
+              </div>
+              <a href="/login" class="btn btn-primary">
+                Se connecter
+              </a>
+            </div>
+          )
+        }
       </div>
     </div>
   </div>
 </Layout>
+
+<script type="module" src="/src/pages/profile.client.js"></script>
